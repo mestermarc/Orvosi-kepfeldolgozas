@@ -109,11 +109,15 @@ def segment_lung_mask(image, fill_lung_structures=True):
 def total_lung_MASK(img):
     return 1 - scipy.ndimage.filters.gaussian_filter(1 - img, 0.7, order=0, output=None, mode='reflect', cval=0.7, truncate=7.0)
 
+
+def get_internal_structures(dataset):
+    segmented_lung = segment_lung_mask(dataset, fill_lung_structures=False)
+    return total_lung_MASK(segmented_lung) - segmented_lung
+
 def preprocessing(CT_kepsorozat):
     segmented_lungs = segment_lung_mask(CT_kepsorozat, fill_lung_structures=False)
     segmented_lungs_fill = segment_lung_mask(CT_kepsorozat, fill_lung_structures=True)
-    internal_structures = segmented_lungs_fill - segmented_lungs
+    #internal_structures = segmented_lungs_fill - segmented_lungs
     # own internal structures:
-    lung_mask = total_lung_MASK(segmented_lungs_fill)
-    own_internal_structures = lung_mask - segmented_lungs
+    own_internal_structures = total_lung_MASK(segmented_lungs_fill) - segmented_lungs
     return own_internal_structures
