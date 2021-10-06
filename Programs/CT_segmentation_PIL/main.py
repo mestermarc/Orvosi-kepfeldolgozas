@@ -23,7 +23,4 @@ my_gui = GUI_Panel(CT_kepsorozat)
 print("Preprocessing befejezve, GUI indul.\n")
 my_gui.log("Lung segmentation")
 
-
-#my_gui.image_change("rs.jpg")
-
 my_gui.root.mainloop()

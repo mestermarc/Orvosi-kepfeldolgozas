@@ -7,10 +7,14 @@ import numpy as np
 # segmentation:
 
 from skimage import measure, morphology
-from skimage.morphology import ball, binary_closing
+from skimage.color import label2rgb
+from skimage.filters import threshold_otsu
+from skimage.morphology import ball, binary_closing, closing, square
 from skimage.measure import label, regionprops
 import cv2
 import scipy
+from skimage.segmentation import clear_border
+
 
 def load_CT(PATH):
     slices = [dicom.dcmread(PATH + '/' + s) for s in os.listdir(PATH)]
@@ -133,3 +137,25 @@ def preprocessing(CT_kepsorozat):
     lung_mask = total_lung_MASK(segmented_lungs_fill)
     own_internal_structures = lung_mask - segmented_lungs
     return own_internal_structures
+
+
+def get_colored_img(image):
+    thresh = threshold_otsu(image)
+    bw = closing(image > thresh, square(3))
+
+    # remove artifacts connected to image border
+    cleared = clear_border(bw)
+
+    # label image regions
+    label_image = label(cleared)
+    # to make the background transparent, pass the value of `bg_label`,
+    # and leave `bg_color` as `None` and `kind` as `overlay`
+    image_label_overlay = label2rgb(label_image, image=image, bg_label=0)
+    return image_label_overlay
+
+
+def colored_structures(dataset):
+    datas = []
+    for i in range(len(dataset)):
+        datas.append((get_colored_img(dataset[i]) * 255).astype(np.uint8))
+    return datas

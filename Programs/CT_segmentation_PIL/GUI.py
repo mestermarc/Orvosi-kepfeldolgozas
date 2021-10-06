@@ -6,6 +6,7 @@ from matplotlib import cm
 import numpy as np
 from matplotlib import pyplot
 from PIL import Image,ImageTk
+import matplotlib.pylab as plt
 
 import img_processing
 
@@ -16,10 +17,11 @@ class GUI_Panel:
     root = tk.Tk()
     imageCanvas = tk.Canvas(root, width=512, height=512)
     imgLabel = ttk.Label()
-    orig_dataset=False
-    cmapNum=0
+    orig_dataset = 0
+    counter = 0
+    cmapNum = 0
 
-    def __init__(self,dataset):
+    def __init__(self, dataset):
         def get_current_value():
             return int(current_value.get())
 
@@ -29,9 +31,9 @@ class GUI_Panel:
 
         def slider_changed(event):
             value_label.configure(text=get_current_value())
-            cm = pyplot.get_cmap(featured_cmaps[self.cmapNum])
+            print("dataset state is:", self.orig_dataset)
 
-            if self.orig_dataset:
+            if self.orig_dataset == 0:
                 #eredeti dataset:
                 img_base = cv2.normalize(src=dataset[get_current_value()], dst=None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX,dtype=cv2.CV_8U)
 
@@ -39,8 +41,14 @@ class GUI_Panel:
                     image=PIL.Image.fromarray(img_base)
                 )
 
-            else:
+            elif self.orig_dataset == 1:
                 img_internal = cv2.normalize(src=internal[get_current_value()], dst=None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX,dtype=cv2.CV_8U)
+                photo = PIL.ImageTk.PhotoImage(
+                    image=PIL.Image.fromarray(img_internal)
+                )
+            else:
+                img_internal = cv2.normalize(src=colored_internal[get_current_value()], dst=None, alpha=0, beta=255,
+                                             norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
                 photo = PIL.ImageTk.PhotoImage(
                     image=PIL.Image.fromarray(img_internal)
                 )
@@ -49,16 +57,27 @@ class GUI_Panel:
             self.imgLabel.photo_ref = photo  # keep a reference
 
         def changeView():
-            self.orig_dataset = not self.orig_dataset
-            print("dataset now is:", self.orig_dataset)
+            self.counter += 1
+            self.orig_dataset = self.counter%3
+            print("dataset state is:", self.orig_dataset)
             slider_changed(3)
 
         featured_cmaps = ["bone", "hot", "twilight", "PuBuGn", "inferno", "seismic", "hsv", "twilight_shifted",
                           "spring", "Accent", "bwr", "afmhot"]
         internal = img_processing.get_internal_structures(dataset)
+        print("Internal dataset is ready")
+        #colored_internal = img_processing.colored_structures(internal)
+
+        colored_internal = []
+        for i in range(307):
+            colored_internal.append((img_processing.get_colored_img(internal[i])))
+
+        print("Colored internal dataset is ready too")
+
+
+
         #img_processing.make_a_GIF(internal,"internal_strcutres")
         im = cv2.normalize(src=dataset[0], dst=None, alpha=0, beta=255,norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
-        self.orig_dataset=True
         self.root.geometry('800x800')
         self.root.resizable(True, True)
         self.root.title('Image segmentation')
@@ -172,6 +191,16 @@ class GUI_Panel:
         )
 
         changeButton = tk.Button(text="Change cmap", command=changeCmap)
+
+        changeButton.grid(
+            row=5,
+            columnspan=4,
+            sticky='s',
+            padx=20,
+            pady=20
+        )
+
+        ColorButton = tk.Button(text="Internal colored", command=changeCmap)
 
         changeButton.grid(
             row=5,
