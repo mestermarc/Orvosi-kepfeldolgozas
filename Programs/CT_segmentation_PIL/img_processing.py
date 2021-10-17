@@ -1,4 +1,3 @@
-
 import pydicom as dicom
 import matplotlib.pylab as plt
 
@@ -14,6 +13,7 @@ from skimage.measure import label, regionprops
 import cv2
 import scipy
 from skimage.segmentation import clear_border
+import matplotlib.patches as mpatches
 
 
 def load_CT(PATH):
@@ -40,12 +40,13 @@ def get_pixels_hu(scans):
 
     return np.array(image, dtype=np.int16)
 
-def print_CT_layers(first,last,dataset,CMAP):
-    for i in range(first,last):
-        plt.imshow(dataset[i],cmap=CMAP)
-        plt.title(str(i)+". picture with cmap:"+CMAP)
+
+def print_CT_layers(first, last, dataset, CMAP):
+    for i in range(first, last):
+        plt.imshow(dataset[i], cmap=CMAP)
+        plt.title(str(i) + ". picture with cmap:" + CMAP)
         plt.show()
-       # plt.close(fig)
+    # plt.close(fig)
 
 
 def print_CT_layers_in_table(first, last, dataset, CMAP):
@@ -55,7 +56,7 @@ def print_CT_layers_in_table(first, last, dataset, CMAP):
     fig = plt.figure(figsize=(30, 30))
     for i in range(first, last):
         if ((i - first) % 4 == 0):
-            rows = rows + 1;
+            rows = rows + 1
             fig = plt.figure(figsize=(30, 30))
         fig.add_subplot(1, columns, ((i - first) % 4) + 1)
         plt.axis('off')
@@ -66,6 +67,8 @@ def print_CT_layers_in_table(first, last, dataset, CMAP):
 
 import imageio
 from IPython import display
+
+
 def make_a_GIF(imgs, GIFNAME):
     data = 255 * imgs  # Now scale by 255
     img = data.astype(np.uint8)
@@ -117,16 +120,19 @@ def segment_lung_mask(image, fill_lung_structures=True):
 
 
 def total_lung_MASK(img):
-    return 1 - scipy.ndimage.filters.gaussian_filter(1 - img, 0.7, order=0, output=None, mode='reflect', cval=0.7, truncate=7.0)
+    return 1 - scipy.ndimage.filters.gaussian_filter(1 - img, 0.7, order=0, output=None, mode='reflect', cval=0.7,
+                                                     truncate=7.0)
 
 
 def get_internal_structures(dataset):
     segmented_lung = segment_lung_mask(dataset, fill_lung_structures=False)
-    return total_lung_MASK(segmented_lung)-segmented_lung
+    return total_lung_MASK(segmented_lung) - segmented_lung
+
 
 def get_internal_structures_in_PIL(dataset):
     segmented_lung = segment_lung_mask(dataset, fill_lung_structures=False)
-    return cv2.normalize(src=total_lung_MASK(segmented_lung)-segmented_lung, dst=None, alpha=0, beta=255, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+    return cv2.normalize(src=total_lung_MASK(segmented_lung) - segmented_lung, dst=None, alpha=0, beta=255,
+                         norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
 
 
 def preprocessing(CT_kepsorozat):
@@ -154,8 +160,47 @@ def get_colored_img(image):
     return image_label_overlay
 
 
+def get_colored_and_framed(image):
+    # apply threshold
+    thresh = threshold_otsu(image)
+    bw = closing(image > thresh, square(3))
+
+    # remove artifacts connected to image border
+    cleared = clear_border(bw)
+
+    # label image regions
+    label_image = label(cleared)
+    # to make the background transparent, pass the value of `bg_label`,
+    # and leave `bg_color` as `None` and `kind` as `overlay`
+    image_label_overlay = label2rgb(label_image, image=image, bg_label=0)
+    x, y, width, height = 0, 0, 0, 0
+    for region in regionprops(label_image):
+        # take regions with large enough areas
+        if region.area >= 100 and region.area <= 1000:
+            # draw rectangle around segmented coins
+            minr, minc, maxr, maxc = region.bbox
+            rect = mpatches.Rectangle((minc, minr), maxc - minc, maxr - minr, fill=False, edgecolor='red', linewidth=2)
+            x=minc
+            y=minr
+            width = maxc - minc
+            height = maxr - minr
+            print("rectangle is not null! x:y=" + str(x) +", "+ str(y)+", w: "+str(width)+"h: "+str(height))
+
+    return x,y, width, height
+
+
 def colored_structures(dataset):
     datas = []
     for i in range(len(dataset)):
         datas.append((get_colored_img(dataset[i]) * 255).astype(np.uint8))
     return datas
+
+
+def get_rectangles(label_image):
+    for region in regionprops(label_image):
+        # take regions with large enough areas
+        if 100 <= region.area <= 1000:
+            # draw rectangle around segmented coins
+            minr, minc, maxr, maxc = region.bbox
+            rect = mpatches.Rectangle((minc, minr), maxc - minc, maxr - minr, fill=False, edgecolor='red', linewidth=2)
+            return rect

@@ -7,7 +7,20 @@ from GUI import GUI_Panel
 import img_processing
 import matplotlib.pylab as plt
 
-FOLDER_PATH = "E:/Egyetem/AI/_Orvosi képfeldolgozás/Datasets/positive_lung_CT/tudodaganat/"
+#           test or full dataset:
+SMALL_DATASET = True
+
+#   full dataset
+#FOLDER_PATH = "E:/Egyetem/AI/_Orvosi képfeldolgozás/Datasets/positive_lung_CT/tudodaganat/"
+
+#   small dataset for testing
+FOLDER_PATH = "E:/Egyetem/AI/_Orvosi képfeldolgozás/Datasets/positive_lung_CT_small/tudodaganat/"
+
+if(SMALL_DATASET):
+    FOLDER_PATH = "E:/Egyetem/AI/_Orvosi képfeldolgozás/Datasets/positive_lung_CT_small/tudodaganat/"
+else:
+    FOLDER_PATH = "E:/Egyetem/AI/_Orvosi képfeldolgozás/Datasets/positive_lung_CT/tudodaganat/"
+
 featured_cmaps = ["bone","hot","twilight","PuBuGn","inferno","seismic","hsv","twilight_shifted","spring","Accent","bwr","afmhot"]
 print("App starting...\n")
 CT_kepsorozat = img_processing.get_pixels_hu(img_processing.load_CT(FOLDER_PATH))

@@ -5,7 +5,7 @@ import PIL.Image, PIL.ImageTk
 from matplotlib import cm
 import numpy as np
 from matplotlib import pyplot
-from PIL import Image,ImageTk
+from PIL import Image, ImageTk, ImageDraw
 import matplotlib.pylab as plt
 
 import img_processing
@@ -31,7 +31,7 @@ class GUI_Panel:
 
         def slider_changed(event):
             value_label.configure(text=get_current_value())
-            print("dataset state is:", self.orig_dataset)
+            #print("dataset state is:", self.orig_dataset)
 
             if self.orig_dataset == 0:
                 #eredeti dataset:
@@ -46,11 +46,46 @@ class GUI_Panel:
                 photo = PIL.ImageTk.PhotoImage(
                     image=PIL.Image.fromarray(img_internal)
                 )
-            else:
+            elif self.orig_dataset == 2:
                 img_internal = cv2.normalize(src=colored_internal[get_current_value()], dst=None, alpha=0, beta=255,
                                              norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
                 photo = PIL.ImageTk.PhotoImage(
                     image=PIL.Image.fromarray(img_internal)
+                )
+            elif self.orig_dataset == 3:
+                img_internal = cv2.normalize(src=colored_internal[get_current_value()], dst=None, alpha=0, beta=255,
+                                             norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+
+                img_base = cv2.normalize(src=dataset[get_current_value()], dst=None, alpha=0, beta=255,
+                                         norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+
+                img_b = PIL.Image.fromarray(img_base).convert('RGBA')
+                img_i = PIL.Image.fromarray(img_internal).convert('RGBA')
+                photo = PIL.ImageTk.PhotoImage(
+                    #image=Image.alpha_composite(PIL.Image.fromarray(img_base), PIL.Image.fromarray(img_internal))
+                    image=Image.blend(img_b, img_i, alpha=0.33)
+                )
+            else:
+                img_internal = cv2.normalize(src=colored_internal[get_current_value()], dst=None, alpha=0, beta=255,
+                                             norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+
+                img_base = cv2.normalize(src=dataset[get_current_value()], dst=None, alpha=0, beta=255,
+                                         norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_8U)
+                x, y, width, height = img_processing.get_colored_and_framed(internal[get_current_value()])
+                img_b = PIL.Image.fromarray(img_base).convert('RGBA')
+                img_i = PIL.Image.fromarray(img_internal).convert('RGBA')
+                shape = [(x, y), (width+x, height+y)]
+
+                shape2 = [(60, 60), (width-10, height-10)]
+
+                # create rectangle image
+
+                imaget = Image.blend(img_b, img_i, alpha=0.33)
+                img1 = ImageDraw.Draw(imaget)
+                img1.rectangle(shape, fill=None, outline="white")
+                photo = PIL.ImageTk.PhotoImage(
+                    # image=Image.alpha_composite(PIL.Image.fromarray(img_base), PIL.Image.fromarray(img_internal))
+                    image=Image.blend(imaget, img_i, alpha=0.1)
                 )
 
             self.imgLabel.config(image=photo)
@@ -58,7 +93,7 @@ class GUI_Panel:
 
         def changeView():
             self.counter += 1
-            self.orig_dataset = self.counter%3
+            self.orig_dataset = self.counter%5      # sets the number of views
             print("dataset state is:", self.orig_dataset)
             slider_changed(3)
 
@@ -69,11 +104,11 @@ class GUI_Panel:
         #colored_internal = img_processing.colored_structures(internal)
 
         colored_internal = []
-        for i in range(307):
+        print(len(internal))
+        for i in range(len(dataset)-1):
             colored_internal.append((img_processing.get_colored_img(internal[i])))
 
         print("Colored internal dataset is ready too")
-
 
 
         #img_processing.make_a_GIF(internal,"internal_strcutres")
@@ -102,7 +137,7 @@ class GUI_Panel:
         slider = ttk.Scale(
             self.root,
             from_=0,
-            to=300,
+            to=len(dataset)-1,
             orient='horizontal',  # vertical
             command=slider_changed,
             variable=current_value
@@ -164,6 +199,9 @@ class GUI_Panel:
 
         self.imgLabel = imgl
 
+
+
+
         # Add a PhotoImage to the Canvas
     ##      messagebox init:         ##
         Output = tk.Text(self.root, height=5,
@@ -211,6 +249,9 @@ class GUI_Panel:
         )
 
         self.root.configure(background='gray')
+
+        def log_inside(self, text):
+            self.messageBox.insert(tk.END, text)
 
     def log(self,text):
         self.messageBox.insert(tk.END, text)
