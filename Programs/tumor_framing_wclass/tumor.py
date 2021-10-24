@@ -1,5 +1,9 @@
+import matplotlib.pylab as plt
+import matplotlib.patches as mpatches
+import copy
+
 class Tumor:
-    def __init__(self, rectangle, regionArea, frameArea, centerx, centery):
+    def __init__(self, rectangle,mask, regionArea, frameArea, centerx, centery):
         super().__init__()
         self.rectangles = []
         self.len = 1
@@ -7,16 +11,19 @@ class Tumor:
         self.frame_area = []
         self.centerx = centerx
         self.centery = centery
+        self.masks = []
 
         self.rectangles.append(rectangle)
+        self.masks.append(mask)
         self.area.append(regionArea)
         self.frame_area.append(frameArea)
-        print("Tumor created!")
-        print(self.len)
 
-    def addSlice(self, rect, regionArea, frameArea, centerx, centery):
+        print("Tumor created!")
+
+    def addSlice(self, rect,mask, regionArea, frameArea, centerx, centery):
         self.len += 1
         self.rectangles.append(rect)
+        self.masks.append(mask)
         self.area.append(regionArea)
         self.frame_area.append(frameArea)
         self.centerx = centerx
@@ -40,6 +47,16 @@ class Tumor:
         else:
             return False
 
+    def plot_Tumor(self):
+        fig2, ax2 = plt.subplots(figsize=(10, 6))
+        ax2.imshow(self.masks[0])
+
+        dot = mpatches.Circle((self.centerx, self.centery), 40, fill=None, edgecolor='red', linewidth=1)
+        ax2.add_patch(dot)
+        ax2.set_axis_off()
+        plt.tight_layout()
+        plt.show()
+
 
 def findTumor(all_tumors, new_tumor):
     if len(all_tumors) == 0:
@@ -49,10 +66,15 @@ def findTumor(all_tumors, new_tumor):
 
         for tumor in all_tumors:
             print("getcent:{}".format(new_tumor.centerx))
-            if tumor.isIdenticalTumor(new_tumor.centerx, new_tumor.centery, 100):
+            if tumor.isIdenticalTumor(new_tumor.centerx, new_tumor.centery, 30):
                 print("meh")
                 # tumor.addSlice(rect, regionArea, frameArea, newcenterx, newcentery)
                 break
             else:
                 all_tumors.append(new_tumor)
                 break
+
+
+def plot_all(all_tumors):
+    for tumor in all_tumors:
+        tumor.plot_Tumor()
