@@ -20,9 +20,14 @@ sum_pic = pre.sum_pics(cropped_dataset)
 
 tumors = []
 
-#for pic in small_internal:
-    #pre.segment_frame_plot(pic, 50, 500, 15)
-pre.segment_frame_plot(tumors, sum_pic, 50, 500, 20)
-plt.close()
+for pic in small_internal:
+    pre.segment_frame_plot(tumors, pic, 50, 500, 15)
+
+#pre.segment_frame_plot(tumors, sum_pic, 50, 500, 20)
 
 print("Found suspicious shit:", len(tumors))
+
+#tumors[0].plot_Tumor()
+tumors[0].plot_onlyTumor(0)
+
+tumor.plot_all_sus(tumors)
