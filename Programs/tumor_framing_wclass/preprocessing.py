@@ -176,18 +176,17 @@ def crop_LUNG_dataset(dataset, SCALE):
 def sum_pics(dataset):
     dst = dataset[0]
     for i in range(1, len(dataset) - 1):
-        print("dst = cv2.addWeighted(dst, 0.5, dataset[{}], 0.5, 0.0)".format(i))
         dst = cv2.addWeighted(dst, 0.5, dataset[i], 0.5, 0.0)
     return dst
 
 
 def aboutSQ(a, b, REGION_AREA, TRESHOLD, AREA_TRESHOLD_PERCENT):
-    # if the frame is circle enough:
+    # if the frame is "circle" enough:
     smaller = min(a, b)
     smallerarea = pow(smaller / 2, 2) * math.pi
     if (abs(a - b) < TRESHOLD and smallerarea > REGION_AREA * AREA_TRESHOLD_PERCENT):
-        print("smallerarea: {}, REGION_AREA{}".format(smallerarea, REGION_AREA))
-        print("SUCCESS")
+        #print("smallerarea: {}, REGION_AREA{}".format(smallerarea, REGION_AREA))
+        #print("SUCCESS")
         return True
     else:
         return False
@@ -207,7 +206,7 @@ def segment_frame_plot(tumors,image, MINSIZE, MAXSIZE, PADDING):
     image_label_overlay = label2rgb(label_image, image=image, bg_label=0)
 
     fig, ax = plt.subplots(figsize=(10, 6))
-    ax.imshow(image)
+    ax.imshow(image, cmap="bwr")
 
     for region in regionprops(label_image):
         # take regions with large enough areas
@@ -217,7 +216,11 @@ def segment_frame_plot(tumors,image, MINSIZE, MAXSIZE, PADDING):
             # if the frame is circle enough:
             if aboutSQ(maxc - minc, maxr - minr, region.area, 40, 0.67):
 
-                rect = mpatches.Rectangle((minc - PADDING, minr - PADDING), maxc - minc + PADDING * 2,
+                smallrect = mpatches.Rectangle((minc, minr), maxc - minc,
+                                          maxr - minr,
+                                          fill=False, ec=(0.5,1,0,0.8),  linewidth=1)
+
+                framing = mpatches.Rectangle((minc - PADDING, minr - PADDING), maxc - minc + PADDING * 2,
                                           maxr - minr + PADDING * 2,
                                           fill=False, edgecolor='white', linewidth=1)
                 circle = mpatches.Circle((minc + (maxc - minc) / 2, minr + (maxr - minr) / 2),
@@ -225,22 +228,21 @@ def segment_frame_plot(tumors,image, MINSIZE, MAXSIZE, PADDING):
                                          fill=False, edgecolor='red', linewidth=1)
 
                 dot = mpatches.Circle((minc + (maxc - minc) / 2, minr + (maxr - minr) / 2), 0.9,
-                                      fill='red', edgecolor='red', linewidth=1)
-                print("smallerarea: {}, REGION_AREA{}".format(pow(min(maxc - minc, maxr - minr), 2) * math.pi,
-                                                              region.area))
+                                      fill='black', edgecolor='black', facecolor='black', linewidth=1)
+                #print("smallerarea: {}, REGION_AREA{}".format(pow(min(maxc - minc, maxr - minr), 2) * math.pi,region.area))
                 cntr += 1
                 x = minc + (maxc-minc)/2
                 y = minr + (maxr - minr)/2
-                tmp_tumor = Tumor(rect,image, region.area, pow(min(maxc - minc, maxr - minr), 2) * math.pi,
-                                  x,y)
+                a = maxr - minr
+                b = maxc-minc
+                tmp_tumor = Tumor(framing,image, region.area, pow(min(maxc - minc, maxr - minr), 2) * math.pi,x,y)
                 findTumor(tumors, tmp_tumor)
 
-                ax.add_patch(rect)
-                #ax.add_patch(circle)
+                ax.add_patch(smallrect)
+                ax.add_patch(framing)
                 ax.add_patch(dot)
-                # print("x= {}, y = {}, w = {}, h = {}, rectangle size = ".format(minr, minc, maxr, maxc))
-                print(cntr)
-                ax.annotate("Rectangle_{}, LEN=".format(cntr), (minc - 10, minr - 10), color='white', weight='bold',
+                            #frame area, region area
+                ax.annotate("#{} FA={}, RA={}, Fill rate={}%".format(cntr, a*b,region.area, region.area/(a*b)), (minc - 30, minr - 15), color='white', weight='bold',
                             fontsize=5, ha='left', va='center')
 
     ax.set_axis_off()

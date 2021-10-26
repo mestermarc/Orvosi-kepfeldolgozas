@@ -19,7 +19,6 @@ class Tumor:
         self.area.append(regionArea)
         self.frame_area.append(frameArea)
 
-        print("Tumor created!")
 
     def addSlice(self, rect, mask, regionArea, frameArea, centerx:int, centery:int):
         self.len += 1
@@ -29,6 +28,7 @@ class Tumor:
         self.frame_area.append(frameArea)
         self.centerx = centerx
         self.centery = centery
+        print("Slice added!")
 
     # TODO delete disappeared slices
 
@@ -78,22 +78,19 @@ class Tumor:
 
         x = coords[0]
         y = coords[1]
-        ax3.imshow(self.masks[num][y:y+width, x:x+width]) #crop_img = img[y:y+h, x:x+w
+        ax3.imshow(self.masks[num][y:y+width, x:x+width], cmap="bwr") #crop_img = img[y:y+h, x:x+w
         #ax3.imshow(self.masks[0][340:419, 280:353])
         plt.show()
 
 
 def findTumor(all_tumors, new_tumor: Tumor):
     if len(all_tumors) == 0:
-        print("len is 0!")
         all_tumors.append(new_tumor)
     else:
 
         for tumor in all_tumors:
             if tumor.isIdenticalTumor(new_tumor.centerx, new_tumor.centery, 30):
                 #tmptum = copy.deepcopy(Tumor(new_tumor))
-
-                print("if its not 0, it works: ", new_tumor.getcentery())
                 # def addSlice(self, rect,mask, regionArea, frameArea, centerx, centery):
                 tumor.addSlice(new_tumor.getfirstRect(), new_tumor.getfirstMask(), new_tumor.getArea(),
                                new_tumor.getRectArea(),new_tumor.getcenterx(), new_tumor.getcentery())
@@ -108,8 +105,11 @@ def plot_all(all_tumors):
         tumor.plot_Tumor()
 
 
-def plot_all_sus(all_tumors):
+def plot_all_sus(all_tumors, all):
     for tumor in all_tumors:
-        if tumor.getLenght()>1:
+        if(all):
+            for num in range(0, tumor.getLenght()):
+                tumor.plot_onlyTumor(num)
+        elif tumor.getLenght()>1:
             for num in range(0, tumor.getLenght()):
                 tumor.plot_onlyTumor(num)
