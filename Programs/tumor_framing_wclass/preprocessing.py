@@ -5,6 +5,7 @@ import math
 import os
 import numpy as np
 # segmentation:
+from skimage.transform import resize
 
 from skimage import measure, morphology
 from skimage.color import label2rgb
@@ -158,9 +159,22 @@ def crop_LUNG(image, SCALE, minr, minc, maxr, maxc):
 
     crop = np.array(crop, dtype='uint8')
 
-    # resize image
-    resized = cv2.resize(crop, dim, interpolation=cv2.INTER_AREA)
+    # resize image TODO interpolation changes:
+    resized = cv2.resize(crop, dim, interpolation=cv2.INTER_CUBIC)
     return resized
+
+
+def crop_rgb_LUNG(image, SCALE, minr, minc, maxr, maxc):
+    padding = 20
+    # minr, minc, maxr, maxc = get_cropping_size(image, padding)
+    crop = image[minr:minr + maxr - minr, minc:minc + maxc - minc]
+    scale_percent = 220  # percent of original size
+    width = int(crop.shape[1] * SCALE / 100)
+    height = int(crop.shape[0] * SCALE / 100)
+    dim = (height, width)
+
+    bottle_resized = resize(crop, dim)
+    return bottle_resized
 
 
 def crop_LUNG_dataset(dataset, SCALE):
@@ -180,12 +194,17 @@ def sum_pics(dataset):
     return dst
 
 
+def getCircleArea(a,b):
+    radius = ((max(a, b)) / 2)*1.2 #multiplied, to make a little overlay
+    return radius * radius * math.pi
+
 def aboutSQ(a, b, REGION_AREA, TRESHOLD, AREA_TRESHOLD_PERCENT):
     # if the frame is "circle" enough:
-    smaller = min(a, b)
-    smallerarea = pow(smaller / 2, 2) * math.pi
-    if (abs(a - b) < TRESHOLD and smallerarea > REGION_AREA * AREA_TRESHOLD_PERCENT):
-        #print("smallerarea: {}, REGION_AREA{}".format(smallerarea, REGION_AREA))
+    #bigcircle_radius
+    framearea = getCircleArea(a,b)
+    # enters, if the width and height values are close enough (TRESHOLD) AND
+    if (abs(a - b) < TRESHOLD and framearea*AREA_TRESHOLD_PERCENT < REGION_AREA ):
+        print("Success, bc: framearea: {}, REGION_AREA: {}".format(framearea, REGION_AREA))
         #print("SUCCESS")
         return True
     else:
@@ -193,6 +212,11 @@ def aboutSQ(a, b, REGION_AREA, TRESHOLD, AREA_TRESHOLD_PERCENT):
 
 
 def segment_frame_plot(tumors,image, MINSIZE, MAXSIZE, PADDING):
+    #tresholds:
+    FRAMING_TRESHOLD = 60
+    AREA_TRESHOLD_PERCENTAGE = 0.50
+
+
     thresh = threshold_otsu(image)
     bw = closing(image > thresh, square(3))
     cntr = 0
@@ -214,8 +238,11 @@ def segment_frame_plot(tumors,image, MINSIZE, MAXSIZE, PADDING):
             # draw rectangle around segmented coins
             minr, minc, maxr, maxc = region.bbox
             # if the frame is circle enough:
-            if aboutSQ(maxc - minc, maxr - minr, region.area, 40, 0.67):
-
+            if aboutSQ(maxc - minc, maxr - minr, region.area, FRAMING_TRESHOLD, AREA_TRESHOLD_PERCENTAGE):
+                a = maxr - minr
+                b = maxc - minc
+                radius = max(a,b)/2
+                circle_area = getCircleArea(a,b)
                 smallrect = mpatches.Rectangle((minc, minr), maxc - minc,
                                           maxr - minr,
                                           fill=False, ec=(0.5,1,0,0.8),  linewidth=1)
@@ -224,8 +251,8 @@ def segment_frame_plot(tumors,image, MINSIZE, MAXSIZE, PADDING):
                                           maxr - minr + PADDING * 2,
                                           fill=False, edgecolor='white', linewidth=1)
                 circle = mpatches.Circle((minc + (maxc - minc) / 2, minr + (maxr - minr) / 2),
-                                         min(maxc - minc, maxr - minr),
-                                         fill=False, edgecolor='red', linewidth=1)
+                                         radius*1.2,
+                                         fill=False, ec=(0,1,1,0.8), linewidth=1)
 
                 dot = mpatches.Circle((minc + (maxc - minc) / 2, minr + (maxr - minr) / 2), 0.9,
                                       fill='black', edgecolor='black', facecolor='black', linewidth=1)
@@ -233,17 +260,17 @@ def segment_frame_plot(tumors,image, MINSIZE, MAXSIZE, PADDING):
                 cntr += 1
                 x = minc + (maxc-minc)/2
                 y = minr + (maxr - minr)/2
-                a = maxr - minr
-                b = maxc-minc
+
                 tmp_tumor = Tumor(framing,image, region.area, pow(min(maxc - minc, maxr - minr), 2) * math.pi,x,y)
                 findTumor(tumors, tmp_tumor)
 
-                ax.add_patch(smallrect)
                 ax.add_patch(framing)
+                ax.add_patch(circle)
                 ax.add_patch(dot)
-                            #frame area, region area
-                ax.annotate("#{} FA={}, RA={}, Fill rate={}%".format(cntr, a*b,region.area, region.area/(a*b)), (minc - 30, minr - 15), color='white', weight='bold',
+                            #number, frame area, region area, fill rate:
+                ax.annotate("#{} FA={}, RA={}, Fill rate={}%".format(cntr, round(circle_area),region.area, round(region.area/(circle_area)*100, 2)), (minc - 30, minr - 15), color='white', weight='bold',
                             fontsize=5, ha='left', va='center')
+                print()
 
     ax.set_axis_off()
     plt.tight_layout()

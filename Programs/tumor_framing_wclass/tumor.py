@@ -71,6 +71,16 @@ class Tumor:
         plt.tight_layout()
         plt.show()
 
+    def plot_Tumor_orig(self, orig):
+        fig2, ax2 = plt.subplots(figsize=(10, 6))
+        ax2.imshow(orig)
+
+        dot = mpatches.Circle((self.centerx, self.centery), 40, fill=None, edgecolor='red', linewidth=1)
+        ax2.add_patch(dot)
+        ax2.set_axis_off()
+        plt.tight_layout()
+        plt.show()
+
     def plot_onlyTumor(self, num):
         fig3, ax3 = plt.subplots(figsize=(10, 6))
         coords = self.rectangles[num].get_xy()
@@ -100,9 +110,14 @@ def findTumor(all_tumors, new_tumor: Tumor):
                 break
 
 
-def plot_all(all_tumors):
-    for tumor in all_tumors:
-        tumor.plot_Tumor()
+def plot_all(all_tumors, MASK, orig):
+    if MASK:
+        for tumor in all_tumors:
+            tumor.plot_Tumor()
+    else:
+        #original dataset:
+        for tumor in all_tumors:
+            tumor.plot_Tumor_orig(orig)
 
 
 def plot_all_sus(all_tumors, all):
