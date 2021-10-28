@@ -34,6 +34,8 @@ import matplotlib.patches as mpatches
 from tumor import Tumor, findTumor
 
 
+LUNG_TRESH = -400
+
 def load_CT(PATH):
     slices = [dicom.dcmread(PATH + '/' + s) for s in os.listdir(PATH)]
     return slices
@@ -72,7 +74,7 @@ def largest_label_volume(im, bg=-1):
 def segment_lung_mask(image, fill_lung_structures=True):
     # not actually binary, but 1 and 2.
     # 0 is treated as background, which we do not want
-    binary_image = np.array(image >= -700, dtype=np.int8) + 1
+    binary_image = np.array(image >= LUNG_TRESH, dtype=np.int8) + 1
     labels = measure.label(binary_image)
     background_label = labels[0, 0, 0]
 

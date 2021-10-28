@@ -7,18 +7,25 @@ import os
 import numpy as np
 import preprocessing as pre
 import tumor
+#small dataset:
+#FOLDER_PATH = "E:/Egyetem/AI/_Orvosi képfeldolgozás/Datasets/pos_lung_CT_10/tudodaganat/"
 
-FOLDER_PATH = "E:/Egyetem/AI/_Orvosi képfeldolgozás/Datasets/pos_lung_CT_10/tudodaganat/"
+#bercimellkas:
+FOLDER_PATH = "E:/Egyetem/AI/_Orvosi képfeldolgozás/Datasets/Berci_mellkas/"
 featured_cmaps = ["bone", "hot", "twilight", "PuBuGn", "inferno", "seismic", "hsv", "twilight_shifted", "spring",
                   "Accent", "bwr", "afmhot"]
 
 CT_dicom = pre.load_CT(FOLDER_PATH)
 CT_kepsorozat = pre.get_pixels_hu(CT_dicom)
+
+plt.imshow(CT_kepsorozat[3])
+plt.show()
+
 small_internal = pre.get_internal_structures(CT_kepsorozat)
-a = copy.deepcopy(CT_kepsorozat[0])
-b = (a - np.min(a)) / np.ptp(a)
 
 print("dataset size is: {}".format(len(small_internal)))
+plt.imshow(small_internal[3])
+plt.show()
 
 # mode setting:
 # 0: is full dataset
@@ -28,15 +35,11 @@ mode = 1
 
 tumors = []
 
-minr, minc, maxr, maxc = pre.get_cropping_size(small_internal[0], 20)
-
-def NormalizeData(data):
-    return (data - np.min(data)) / (np.max(data) - np.min(data))
-
-croppedOne2 = pre.crop_rgb_LUNG(CT_kepsorozat[1], 500, minr, minc, maxr, maxc)
-
 cropped_dataset = pre.crop_LUNG_dataset(small_internal, 500)
-cropped_CT_kepsorozat = pre.crop_LUNG_dataset(CT_kepsorozat, 500)
+plt.imshow(cropped_dataset[3])
+plt.show()
+
+plt.imshow(cropped_dataset[100])
 
 if mode == 0:
     for cmap in featured_cmaps:
@@ -52,8 +55,8 @@ elif mode == 1:
     pre.segment_frame_plot(tumors, sum_pic, 50, 500, 30)
     plot_all = True
     # tumor.plot_all_sus(tumors, plot_all)
-    MASK = False
-    tumor.plot_all(tumors,MASK, croppedOne2 )
+    MASK = True
+    #tumor.plot_all(tumors,MASK, croppedOne2 )
 
 elif mode == 2:
     first = cropped_dataset[1:3]
