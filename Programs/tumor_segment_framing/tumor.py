@@ -111,14 +111,12 @@ def findTumor(all_tumors, new_tumor: Tumor):
 
 
 def plot_all(all_tumors, MASK, orig):
-    if MASK:
-        for tumor in all_tumors:
-            tumor.plot_Tumor()
-    else:
-        #original dataset:
-        for tumor in all_tumors:
-            tumor.plot_Tumor_orig(orig)
+    for tumor in all_tumors:
+        tumor.plot_Tumor()
 
+def plot_all_orig(all_tumors, orig):
+    for tumor in all_tumors:
+        tumor.plot_Tumor_orig(orig)
 
 def plot_all_sus(all_tumors, all):
     for tumor in all_tumors:

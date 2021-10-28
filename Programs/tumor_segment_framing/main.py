@@ -15,30 +15,45 @@ FOLDER_PATH = "E:/Egyetem/AI/_Orvosi képfeldolgozás/Datasets/Berci_mellkas/"
 featured_cmaps = ["bone", "hot", "twilight", "PuBuGn", "inferno", "seismic", "hsv", "twilight_shifted", "spring",
                   "Accent", "bwr", "afmhot"]
 
-CT_dicom = pre.load_CT(FOLDER_PATH)
-CT_kepsorozat = pre.get_pixels_hu(CT_dicom)
+#load DICOM images:
+load_DICOM = False
 
-small_internal = pre.get_internal_structures(CT_kepsorozat)
+if(load_DICOM):
+    CT_dicom = pre.load_CT(FOLDER_PATH)
+    CT_kepsorozat = pre.get_pixels_hu(CT_dicom)
+    print("CT_kepsorozat ndarray is ready.")
 
-print("dataset size is: {}".format(len(small_internal)))
+    small_internal = pre.get_internal_structures(CT_kepsorozat)
+    cropped_dataset = pre.crop_LUNG_dataset(small_internal, 500)
+    internal_dataset = pre.cutoffborder(cropped_dataset)
+    print("internal_dataset is ready.\n preprocessing finished.")
+    np.save('bercidataset.npy', internal_dataset)
+    print("bercidataset.npy saved.")
+
+
+else:
+    internal_dataset = np.load('bercidataset.npy')
+    print("Opened presaved ndarray (bercidataset)")
+
+
+
+print("dataset size is: {}".format(len(internal_dataset)))
 
 # mode setting:
-# 0: is full dataset
+# 0: full dataset plot tumors in every single image
 # 1: full dataset summed in one
 # 2: full dataset to 3 sums
 mode = 0
 
 tumors = []
 
-cropped_dataset = pre.crop_LUNG_dataset(small_internal, 500)
-internal_dataset = pre.cutoffborder(cropped_dataset)
-
 if mode == 0:
-    for pic in cropped_dataset:
+    for pic in internal_dataset:
+        #frames all the "circlish" shapes in every slide
         pre.segment_frame_plot(tumors, pic, 50, 500, 15)
 
 elif mode == 1:
-    sum_pic = pre.sum_pics(cropped_dataset)
+    sum_pic = pre.sum_pics(internal_dataset)
 
     pre.segment_frame_plot(tumors, sum_pic, 50, 500, 30)
     plot_all = True
@@ -47,9 +62,9 @@ elif mode == 1:
     #tumor.plot_all(tumors,MASK, croppedOne2 )
 
 elif mode == 2:
-    first = cropped_dataset[1:3]
-    middle = cropped_dataset[3:5]
-    last = cropped_dataset[5:7]
+    first = internal_dataset[1:3]
+    middle = internal_dataset[3:5]
+    last = internal_dataset[5:7]
 
     sum = []
     sum.append(pre.sum_pics(first))
