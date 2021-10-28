@@ -8,24 +8,20 @@ import numpy as np
 import preprocessing as pre
 import tumor
 #small dataset:
-#FOLDER_PATH = "E:/Egyetem/AI/_Orvosi képfeldolgozás/Datasets/pos_lung_CT_10/tudodaganat/"
+FOLDER_PATH = "E:/Egyetem/AI/_Orvosi képfeldolgozás/Datasets/pos_lung_CT_10/tudodaganat/"
 
 #bercimellkas:
-FOLDER_PATH = "E:/Egyetem/AI/_Orvosi képfeldolgozás/Datasets/Berci_mellkas/"
+#FOLDER_PATH = "E:/Egyetem/AI/_Orvosi képfeldolgozás/Datasets/Berci_mellkas/"
 featured_cmaps = ["bone", "hot", "twilight", "PuBuGn", "inferno", "seismic", "hsv", "twilight_shifted", "spring",
                   "Accent", "bwr", "afmhot"]
 
 CT_dicom = pre.load_CT(FOLDER_PATH)
 CT_kepsorozat = pre.get_pixels_hu(CT_dicom)
 
-plt.imshow(CT_kepsorozat[3])
-plt.show()
-
 small_internal = pre.get_internal_structures(CT_kepsorozat)
 
 print("dataset size is: {}".format(len(small_internal)))
-plt.imshow(small_internal[3])
-plt.show()
+
 
 # mode setting:
 # 0: is full dataset
@@ -36,10 +32,6 @@ mode = 1
 tumors = []
 
 cropped_dataset = pre.crop_LUNG_dataset(small_internal, 500)
-plt.imshow(cropped_dataset[3])
-plt.show()
-
-plt.imshow(cropped_dataset[100])
 
 if mode == 0:
     for cmap in featured_cmaps:
