@@ -1,7 +1,7 @@
 import pydicom as dicom
 import matplotlib.pylab as plt
 import math
-
+import copy
 import os
 import numpy as np
 # segmentation:
@@ -176,8 +176,8 @@ def crop_rgb_LUNG(image, SCALE, minr, minc, maxr, maxc):
     height = int(crop.shape[0] * SCALE / 100)
     dim = (height, width)
 
-    bottle_resized = resize(crop, dim)
-    return bottle_resized
+    rgb_resized = resize(crop, dim)
+    return rgb_resized
 
 
 def crop_LUNG_dataset(dataset, SCALE):
@@ -189,6 +189,14 @@ def crop_LUNG_dataset(dataset, SCALE):
         results.append(crop_LUNG(data, SCALE, minr, minc, maxr, maxc))
     return results
 
+def crop_rgb_LUNG_dataset(dataset, SCALE, dataset2):
+    padding = 20
+    minr, minc, maxr, maxc = get_cropping_size(dataset2[0], padding)
+
+    results = []
+    for data in dataset:
+        results.append(crop_rgb_LUNG(data, SCALE, minr, minc, maxr, maxc))
+    return results
 
 def sum_pics(dataset):
     dst = dataset[0]
@@ -214,7 +222,7 @@ def aboutSQ(a, b, REGION_AREA, TRESHOLD, AREA_TRESHOLD_PERCENT):
         return False
 
 
-def segment_frame_plot(tumors,image, MINSIZE, MAXSIZE, PADDING):
+def segment_frame_plot(tumors,image,base_image, MINSIZE, MAXSIZE, PADDING):
     #tresholds:
     FRAMING_TRESHOLD = 60
     AREA_TRESHOLD_PERCENTAGE = 0.50
@@ -232,9 +240,9 @@ def segment_frame_plot(tumors,image, MINSIZE, MAXSIZE, PADDING):
     # and leave `bg_color` as `None` and `kind` as `overlay`
     image_label_overlay = label2rgb(label_image, image=image, bg_label=0)
 
-    fig, ax = plt.subplots(figsize=(10, 6))
-    ax.imshow(image, cmap="bwr")
-
+    fig, ax = plt.subplots(figsize=(10, 6),ncols=2)
+    ax[0].imshow(image, cmap="bwr")
+    ax[1].imshow(base_image, cmap="bone")
     for region in regionprops(label_image):
         # take regions with large enough areas
         if region.area >= MINSIZE and region.area < MAXSIZE:
@@ -253,6 +261,10 @@ def segment_frame_plot(tumors,image, MINSIZE, MAXSIZE, PADDING):
                 framing = mpatches.Rectangle((minc - PADDING, minr - PADDING), maxc - minc + PADDING * 2,
                                           maxr - minr + PADDING * 2,
                                           fill=False, edgecolor='white', linewidth=1)
+
+                framing2 = mpatches.Rectangle((minc - PADDING, minr - PADDING), maxc - minc + PADDING * 2,
+                                          maxr - minr + PADDING * 2,
+                                          fill=False, edgecolor='white', linewidth=1)
                 circle = mpatches.Circle((minc + (maxc - minc) / 2, minr + (maxr - minr) / 2),
                                          radius*1.2,
                                          fill=False, ec=(0,1,1,0.8), linewidth=1)
@@ -267,14 +279,20 @@ def segment_frame_plot(tumors,image, MINSIZE, MAXSIZE, PADDING):
                 tmp_tumor = Tumor(framing,image, region.area, pow(min(maxc - minc, maxr - minr), 2) * math.pi,x,y)
                 findTumor(tumors, tmp_tumor)
 
-                ax.add_patch(framing)
-                ax.add_patch(circle)
-                ax.add_patch(dot)
+                ax[0].add_patch(framing)
+                ax[1].add_patch(framing2)
+
+                ax[0].add_patch(circle)
+                ax[0].add_patch(dot)
                             #number, frame area, region area, fill rate:
-                ax.annotate("#{} FA={}, RA={}, Fill rate={}%".format(cntr, round(circle_area),region.area, round(region.area/(circle_area)*100, 2)), (minc - 30, minr - 15), color='white', weight='bold',
+                ax[0].annotate("#{} FA={}, RA={}, Fill rate={}%".format(cntr, round(circle_area),region.area, round(region.area/(circle_area)*100, 2)), (minc - 30, minr - 15), color='white', weight='bold',
+                            fontsize=5, ha='left', va='center')
+
+                ax[1].annotate("#{} FA={}, RA={}, Fill rate={}%".format(cntr, round(circle_area),region.area, round(region.area/(circle_area)*100, 2)), (minc - 30, minr - 15), color='white', weight='bold',
                             fontsize=5, ha='left', va='center')
                 print()
 
-    ax.set_axis_off()
+    ax[0].set_axis_off()
+    ax[1].set_axis_off()
     plt.tight_layout()
     plt.show()

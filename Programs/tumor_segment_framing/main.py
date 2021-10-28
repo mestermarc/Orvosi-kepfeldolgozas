@@ -17,6 +17,7 @@ featured_cmaps = ["bone", "hot", "twilight", "PuBuGn", "inferno", "seismic", "hs
 
 #load DICOM images:
 load_DICOM = False
+load_DICOM = False
 
 if(load_DICOM):
     CT_dicom = pre.load_CT(FOLDER_PATH)
@@ -25,15 +26,24 @@ if(load_DICOM):
 
     small_internal = pre.get_internal_structures(CT_kepsorozat)
     cropped_dataset = pre.crop_LUNG_dataset(small_internal, 500)
+    cropped_CT = pre.crop_rgb_LUNG_dataset(CT_kepsorozat, 500, small_internal)
+
+
     internal_dataset = pre.cutoffborder(cropped_dataset)
     print("internal_dataset is ready.\n preprocessing finished.")
     np.save('bercidataset.npy', internal_dataset)
     print("bercidataset.npy saved.")
 
+    np.save('cropped_CT.npy', cropped_CT)
+    print("cropped_CT.npy saved.")
+
 
 else:
     internal_dataset = np.load('bercidataset.npy')
     print("Opened presaved ndarray (bercidataset)")
+
+    cropped_CT = np.load('cropped_CT.npy')
+    print("Opened presaved ndarray (cropped_CT)")
 
 
 
@@ -48,9 +58,13 @@ mode = 0
 tumors = []
 
 if mode == 0:
-    for pic in internal_dataset:
+
+#    for pic in cropped_CT:
+#        plt.imshow(pic, cmap="bone")
+
+    for i in range(len(internal_dataset)):
         #frames all the "circlish" shapes in every slide
-        pre.segment_frame_plot(tumors, pic, 50, 500, 15)
+        pre.segment_frame_plot(tumors, internal_dataset[i], cropped_CT[i], 50, 500, 15)
 
 elif mode == 1:
     sum_pic = pre.sum_pics(internal_dataset)
