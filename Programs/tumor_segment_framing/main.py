@@ -56,7 +56,7 @@ print("dataset size is: {}".format(len(internal_dataset)))
 # 3: plot 3D
 # 4: makeAgif
 
-mode = 4
+mode = 0
 
 tumors = []
 """
@@ -108,7 +108,6 @@ elif mode == 3:
 
 elif mode == 4:
     print("GIF making in process")
-    #pre.make_a_GIF(Image.fromarray(np.uint8(internal_dataset[29:33])).convert('RGB'), "internal_dataset")
-    pre.print_CT_layers_in_table(60,80,internal_dataset,"bone")
+    pre.make_a_GIF(internal_dataset, "framed_lungi")
 
 print("Found {} suspicious forms:".format(len(tumors)))

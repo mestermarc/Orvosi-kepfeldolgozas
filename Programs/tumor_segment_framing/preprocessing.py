@@ -247,8 +247,11 @@ def segment_frame_plot(tumors,image,base_image, MINSIZE, MAXSIZE, PADDING):
         image_label_overlay = label2rgb(label_image, image=image, bg_label=0)
 
         fig, ax = plt.subplots(figsize=(10, 6),ncols=2)
-        ax[0].imshow(image, cmap="bwr")
-        ax[1].imshow(base_image, cmap="bone")
+        #dest = cv2.addWeighted(image, 0.5, base_image, 0.5, 0.0)
+        dest = image * (1.0 - 0.95) + base_image * 0.95
+
+        ax[0].imshow(dest, cmap="bwr")
+        ax[1].imshow(dest, cmap="afmhot")
         for region in regionprops(label_image):
             # take regions with large enough areas
             if region.area >= MINSIZE and region.area < MAXSIZE:
@@ -273,7 +276,7 @@ def segment_frame_plot(tumors,image,base_image, MINSIZE, MAXSIZE, PADDING):
                                               fill=False, edgecolor='white', linewidth=1)
                     circle = mpatches.Circle((minc + (maxc - minc) / 2, minr + (maxr - minr) / 2),
                                              radius*1.2,
-                                             fill=False, ec=(0,1,1,0.8), linewidth=1)
+                                             fill=False, ec=(0,1,1,0.3), linewidth=1)
 
                     dot = mpatches.Circle((minc + (maxc - minc) / 2, minr + (maxr - minr) / 2), 0.9,
                                           fill='black', edgecolor='black', facecolor='black', linewidth=1)
