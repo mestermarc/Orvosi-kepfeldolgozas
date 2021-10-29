@@ -2,6 +2,7 @@ import copy
 
 import pydicom as dicom
 import matplotlib.pylab as plt
+from PIL import Image
 
 import os
 import numpy as np
@@ -16,7 +17,6 @@ featured_cmaps = ["bone", "hot", "twilight", "PuBuGn", "inferno", "seismic", "hs
                   "Accent", "bwr", "afmhot"]
 
 #load DICOM images:
-load_DICOM = False
 load_DICOM = False
 
 if(load_DICOM):
@@ -53,16 +53,24 @@ print("dataset size is: {}".format(len(internal_dataset)))
 # 0: full dataset plot tumors in every single image
 # 1: full dataset summed in one
 # 2: full dataset to 3 sums
-mode = 0
+# 3: plot 3D
+# 4: makeAgif
+
+mode = 4
 
 tumors = []
+"""
+for pic in internal_dataset[35:40]:
+    plt.imshow(pic, cmap="bone")
+    plt.show()
+"""
 
 if mode == 0:
 
 #    for pic in cropped_CT:
 #        plt.imshow(pic, cmap="bone")
 
-    for i in range(len(internal_dataset)):
+    for i in range(30,len(internal_dataset)):
         #frames all the "circlish" shapes in every slide
         pre.segment_frame_plot(tumors, internal_dataset[i], cropped_CT[i], 50, 500, 15)
 
@@ -92,5 +100,15 @@ elif mode == 2:
     # plotting all, if false, it will plot only the longer tumors
     plot_all = True
     tumor.plot_all_sus(tumors, plot_all)
+
+elif mode == 3:
+    print("plot3D")
+    inter = internal_dataset[15:60]
+    pre.plot_3d(inter)
+
+elif mode == 4:
+    print("GIF making in process")
+    #pre.make_a_GIF(Image.fromarray(np.uint8(internal_dataset[29:33])).convert('RGB'), "internal_dataset")
+    pre.print_CT_layers_in_table(60,80,internal_dataset,"bone")
 
 print("Found {} suspicious forms:".format(len(tumors)))
