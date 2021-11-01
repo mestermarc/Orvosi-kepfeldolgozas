@@ -233,8 +233,11 @@ def aboutSQ(a, b, REGION_AREA, TRESHOLD, AREA_TRESHOLD_PERCENT):
 
 def segment_frame_plot(tumors, image, base_image, MINSIZE, MAXSIZE, PADDING, PLOTTING_ENABLED):
     # tresholds:
-    FRAMING_TRESHOLD = 60
-    AREA_TRESHOLD_PERCENTAGE = 0.50
+
+    # originally:
+    FRAMING_TRESHOLD = 100
+    AREA_TRESHOLD_PERCENTAGE = 0.45
+
 
     is_all_zero = np.all((image == 0))
     if not is_all_zero:
@@ -301,9 +304,8 @@ def segment_frame_plot(tumors, image, base_image, MINSIZE, MAXSIZE, PADDING, PLO
                         ax[1].add_patch(circle)
                         ax[0].add_patch(dot)
                         # number, frame area, region area, fill rate:
-                        ax[0].annotate("#{} FA={}, RA={}, Fill rate={}%".format(cntr, round(circle_area), region.area,
-                                                                                round(region.area / (circle_area) * 100,
-                                                                                      2)), (minc - 30, minr - 30),
+                        ax[0].annotate("#{} Fill rate={}, area= {}%".format(cntr, round(region.area / (circle_area) * 100, 2),region.area),
+                                       (minc - 30, minr - 30),
                                        color='white', weight='bold',
                                        fontsize=5, ha='left', va='center')
 

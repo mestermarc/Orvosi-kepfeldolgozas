@@ -71,7 +71,7 @@ if MODE == 0:
 
     for i in range(0, len(internal_dataset)):
         # frames all the "circlish" shapes in every slide
-        pre.segment_frame_plot(tumors, internal_dataset[i], cropped_CT[i], 50, 500, 15, False)
+        pre.segment_frame_plot(tumors, internal_dataset[i], cropped_CT[i], 50, 800, 15, False)
 
     plot_all = False
     tumor.plot_all_sus(tumors, plot_all)
@@ -92,7 +92,7 @@ elif MODE == 2:
     SHOW_ALL = True
     i = 112
     for pic in elsodaganat:
-        pre.segment_frame_plot(tumors, pic, cropped_CT[i], 50, 500, 15, True)
+        pre.segment_frame_plot(tumors, pic, cropped_CT[i], 50, 2000, 15, True)
         i += 1
 
     i = 114
