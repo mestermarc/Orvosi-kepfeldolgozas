@@ -8,18 +8,19 @@ import os
 import numpy as np
 import preprocessing as pre
 import tumor
-#small dataset:
-#FOLDER_PATH = "E:/Egyetem/AI/_Orvosi képfeldolgozás/Datasets/pos_lung_CT_10/tudodaganat/"
 
-#bercimellkas:
+# small dataset:
+# FOLDER_PATH = "E:/Egyetem/AI/_Orvosi képfeldolgozás/Datasets/pos_lung_CT_10/tudodaganat/"
+
+# bercimellkas:
 FOLDER_PATH = "E:/Egyetem/AI/_Orvosi képfeldolgozás/Datasets/Berci_mellkas/"
 featured_cmaps = ["bone", "hot", "twilight", "PuBuGn", "inferno", "seismic", "hsv", "twilight_shifted", "spring",
                   "Accent", "bwr", "afmhot"]
 
-#load DICOM images:
+# load DICOM images:
 load_DICOM = False
 
-if(load_DICOM):
+if (load_DICOM):
     CT_dicom = pre.load_CT(FOLDER_PATH)
     CT_kepsorozat = pre.get_pixels_hu(CT_dicom)
     print("CT_kepsorozat ndarray is ready.")
@@ -27,7 +28,6 @@ if(load_DICOM):
     small_internal = pre.get_internal_structures(CT_kepsorozat)
     cropped_dataset = pre.crop_LUNG_dataset(small_internal, 500)
     cropped_CT = pre.crop_rgb_LUNG_dataset(CT_kepsorozat, 500, small_internal)
-
 
     internal_dataset = pre.cutoffborder(cropped_dataset)
     print("internal_dataset is ready.\n preprocessing finished.")
@@ -45,8 +45,6 @@ else:
     cropped_CT = np.load('cropped_CT.npy')
     print("Opened presaved ndarray (cropped_CT)")
 
-
-
 print("dataset size is: {}".format(len(internal_dataset)))
 
 # mode setting:
@@ -54,9 +52,9 @@ print("dataset size is: {}".format(len(internal_dataset)))
 # 1: full dataset summed in one
 # 2: full dataset to 3 sums
 # 3: plot 3D
-# 4: makeAgif
+# 4: plotly
 
-mode = 0
+MODE = 2
 
 tumors = []
 """
@@ -65,49 +63,49 @@ for pic in internal_dataset[35:40]:
     plt.show()
 """
 
-if mode == 0:
+if MODE == 0:
 
-#    for pic in cropped_CT:
-#        plt.imshow(pic, cmap="bone")
+    #   tumor.plot_all_sus(tumors)
+    #   for pic in cropped_CT:
+    #   plt.imshow(pic, cmap="bone")
 
-    for i in range(30,len(internal_dataset)):
-        #frames all the "circlish" shapes in every slide
-        pre.segment_frame_plot(tumors, internal_dataset[i], cropped_CT[i], 50, 500, 15)
+    for i in range(0, len(internal_dataset)):
+        # frames all the "circlish" shapes in every slide
+        pre.segment_frame_plot(tumors, internal_dataset[i], cropped_CT[i], 50, 500, 15, False)
 
-elif mode == 1:
+    plot_all = False
+    tumor.plot_all_sus(tumors, plot_all)
+
+elif MODE == 1:
     sum_pic = pre.sum_pics(internal_dataset)
 
     pre.segment_frame_plot(tumors, sum_pic, 50, 500, 30)
     plot_all = True
     # tumor.plot_all_sus(tumors, plot_all)
     MASK = True
-    #tumor.plot_all(tumors,MASK, croppedOne2 )
+    # tumor.plot_all(tumors,MASK, croppedOne2 )
 
-elif mode == 2:
-    first = internal_dataset[1:3]
-    middle = internal_dataset[3:5]
-    last = internal_dataset[5:7]
+elif MODE == 2:
+    elsodaganat = internal_dataset[112:117]
+    masodikdaganat = internal_dataset[114:118]
 
-    sum = []
-    sum.append(pre.sum_pics(first))
-    sum.append(pre.sum_pics(middle))
-    sum.append(pre.sum_pics(last))
-    print("sum size is: {}".format(len(sum)))
+    SHOW_ALL = True
+    i = 112
+    for pic in elsodaganat:
+        pre.segment_frame_plot(tumors, pic, cropped_CT[i], 50, 500, 15, True)
+        i += 1
 
-    for pic in sum:
-        pre.segment_frame_plot(tumors, pic, 50, 500, 15)
+    i = 114
+    for pic in masodikdaganat:
+        pre.segment_frame_plot(tumors, pic, cropped_CT[i], 50, 500, 15, True)
+        i += 1
 
-    # plotting all, if false, it will plot only the longer tumors
-    plot_all = True
-    tumor.plot_all_sus(tumors, plot_all)
-
-elif mode == 3:
+elif MODE == 3:
     print("plot3D")
     inter = internal_dataset[15:60]
     pre.plot_3d(inter)
 
-elif mode == 4:
-    print("GIF making in process")
-    pre.make_a_GIF(internal_dataset, "framed_lungi")
+elif MODE == 4:
+    pre.plotly_img(internal_dataset)
 
 print("Found {} suspicious forms:".format(len(tumors)))

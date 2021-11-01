@@ -9,7 +9,8 @@ from PIL import Image
 from skimage.transform import resize
 
 import skimage.segmentation as seg
-
+import plotly.express as px
+from skimage import io
 
 # segmentation:
 from skimage import measure, morphology
@@ -27,13 +28,13 @@ import matplotlib.patches as mpatches
 
 from tumor import Tumor, findTumor
 
-
 LUNG_TRESH = -600
+
 
 def load_CT(PATH):
     slices = [dicom.dcmread(PATH + '/' + s) for s in os.listdir(PATH)]
     slices = sorted(slices, key=lambda s: s.SliceLocation)
-    #kellett a reverse
+    # kellett a reverse
     sli = slices[::-1]
     return sli
 
@@ -110,12 +111,13 @@ def get_internal_structures(dataset):
     segmented_lung = segment_lung_mask(dataset, fill_lung_structures=False)
     return total_lung_MASK(segmented_lung) - segmented_lung
 
+
 def cutoffborder(dataset):
-    cropped=[]
+    cropped = []
     for data in dataset:
-        w = seg.flood_fill(1-data,(1,1),0)
-        w = seg.flood_fill(w,(1,1),1)
-        cropped.append(1-w)
+        w = seg.flood_fill(1 - data, (1, 1), 0)
+        w = seg.flood_fill(w, (1, 1), 1)
+        cropped.append(1 - w)
     return cropped
 
 
@@ -185,22 +187,24 @@ def crop_rgb_LUNG(image, SCALE, minr, minc, maxr, maxc):
 
 
 def crop_LUNG_dataset(dataset, SCALE):
-    padding = 20
-    minr, minc, maxr, maxc = get_cropping_size(dataset[60], padding)
+    padding = 40
+    minr, minc, maxr, maxc = get_cropping_size(dataset[120], padding)
 
     results = []
     for data in dataset:
         results.append(crop_LUNG(data, SCALE, minr, minc, maxr, maxc))
     return results
 
-def crop_rgb_LUNG_dataset(dataset, SCALE, dataset2):
-    padding = 20
-    minr, minc, maxr, maxc = get_cropping_size(dataset2[60], padding)
+
+def crop_rgb_LUNG_dataset(dataset, SCALE, frame_img):
+    padding = 40
+    minr, minc, maxr, maxc = get_cropping_size(frame_img[120], padding)
 
     results = []
     for data in dataset:
         results.append(crop_rgb_LUNG(data, SCALE, minr, minc, maxr, maxc))
     return results
+
 
 def sum_pics(dataset):
     dst = dataset[0]
@@ -209,25 +213,26 @@ def sum_pics(dataset):
     return dst
 
 
-def getCircleArea(a,b):
-    radius = ((max(a, b)) / 2)*1.2 #multiplied, to make a little overlay
+def getCircleArea(a, b):
+    radius = ((max(a, b)) / 2) * 1.2  # multiplied, to make a little overlay
     return radius * radius * math.pi
+
 
 def aboutSQ(a, b, REGION_AREA, TRESHOLD, AREA_TRESHOLD_PERCENT):
     # if the frame is "circle" enough:
-    #bigcircle_radius
-    framearea = getCircleArea(a,b)
+    # bigcircle_radius
+    framearea = getCircleArea(a, b)
     # enters, if the width and height values are close enough (TRESHOLD) AND
-    if (abs(a - b) < TRESHOLD and framearea*AREA_TRESHOLD_PERCENT < REGION_AREA ):
+    if (abs(a - b) < TRESHOLD and framearea * AREA_TRESHOLD_PERCENT < REGION_AREA):
         print("Success, bc: framearea: {}, REGION_AREA: {}".format(framearea, REGION_AREA))
-        #print("SUCCESS")
+        # print("SUCCESS")
         return True
     else:
         return False
 
 
-def segment_frame_plot(tumors,image,base_image, MINSIZE, MAXSIZE, PADDING):
-    #tresholds:
+def segment_frame_plot(tumors, image, base_image, MINSIZE, MAXSIZE, PADDING, PLOTTING_ENABLED):
+    # tresholds:
     FRAMING_TRESHOLD = 60
     AREA_TRESHOLD_PERCENTAGE = 0.50
 
@@ -245,13 +250,15 @@ def segment_frame_plot(tumors,image,base_image, MINSIZE, MAXSIZE, PADDING):
         # to make the background transparent, pass the value of `bg_label`,
         # and leave `bg_color` as `None` and `kind` as `overlay`
         image_label_overlay = label2rgb(label_image, image=image, bg_label=0)
+        if (PLOTTING_ENABLED):
+            fig, ax = plt.subplots(figsize=(10, 6), ncols=2)
+            # dest = cv2.addWeighted(image, 0.5, base_image, 0.5, 0.0)
+            dest = base_image * 0.95 + image * (1.0 - 0.95)
+            dest2 = base_image * 0.9 + image * (1.0 - 0.9)
 
-        fig, ax = plt.subplots(figsize=(10, 6),ncols=2)
-        #dest = cv2.addWeighted(image, 0.5, base_image, 0.5, 0.0)
-        dest = image * (1.0 - 0.95) + base_image * 0.95
+            ax[0].imshow(dest, cmap="afmhot")
+            ax[1].imshow(dest2, cmap="bone")
 
-        ax[0].imshow(dest, cmap="bwr")
-        ax[1].imshow(dest, cmap="afmhot")
         for region in regionprops(label_image):
             # take regions with large enough areas
             if region.area >= MINSIZE and region.area < MAXSIZE:
@@ -261,50 +268,50 @@ def segment_frame_plot(tumors,image,base_image, MINSIZE, MAXSIZE, PADDING):
                 if aboutSQ(maxc - minc, maxr - minr, region.area, FRAMING_TRESHOLD, AREA_TRESHOLD_PERCENTAGE):
                     a = maxr - minr
                     b = maxc - minc
-                    radius = max(a,b)/2
-                    circle_area = getCircleArea(a,b)
+                    radius = max(a, b) / 2
+                    circle_area = getCircleArea(a, b)
                     smallrect = mpatches.Rectangle((minc, minr), maxc - minc,
-                                              maxr - minr,
-                                              fill=False, ec=(0.5,1,0,0.8),  linewidth=1)
+                                                   maxr - minr,
+                                                   fill=False, ec=(0.5, 1, 0, 0.8), linewidth=1)
 
                     framing = mpatches.Rectangle((minc - PADDING, minr - PADDING), maxc - minc + PADDING * 2,
-                                              maxr - minr + PADDING * 2,
-                                              fill=False, edgecolor='white', linewidth=1)
+                                                 maxr - minr + PADDING * 2,
+                                                 fill=False, edgecolor='white', linewidth=1)
 
                     framing2 = mpatches.Rectangle((minc - PADDING, minr - PADDING), maxc - minc + PADDING * 2,
-                                              maxr - minr + PADDING * 2,
-                                              fill=False, edgecolor='white', linewidth=1)
+                                                  maxr - minr + PADDING * 2,
+                                                  fill=False, edgecolor='white', linewidth=1)
                     circle = mpatches.Circle((minc + (maxc - minc) / 2, minr + (maxr - minr) / 2),
-                                             radius*1.2,
-                                             fill=False, ec=(0,1,1,0.3), linewidth=1)
+                                             radius * 3,
+                                             fill=False, ec=(1, 0, 0, 1), linewidth=1)
 
                     dot = mpatches.Circle((minc + (maxc - minc) / 2, minr + (maxr - minr) / 2), 0.9,
                                           fill='black', edgecolor='black', facecolor='black', linewidth=1)
-                    #print("smallerarea: {}, REGION_AREA{}".format(pow(min(maxc - minc, maxr - minr), 2) * math.pi,region.area))
+                    # print("smallerarea: {}, REGION_AREA{}".format(pow(min(maxc - minc, maxr - minr), 2) * math.pi,region.area))
                     cntr += 1
-                    x = minc + (maxc-minc)/2
-                    y = minr + (maxr - minr)/2
+                    x = minc + (maxc - minc) / 2
+                    y = minr + (maxr - minr) / 2
 
-                    tmp_tumor = Tumor(framing,image, region.area, pow(min(maxc - minc, maxr - minr), 2) * math.pi,x,y)
+                    tmp_tumor = Tumor(framing, image, region.area, pow(min(maxc - minc, maxr - minr), 2) * math.pi, x,
+                                      y)
                     findTumor(tumors, tmp_tumor)
+                    if (PLOTTING_ENABLED):
+                        ax[0].add_patch(framing)
 
-                    ax[0].add_patch(framing)
-                    ax[1].add_patch(framing2)
+                        ax[1].add_patch(circle)
+                        ax[0].add_patch(dot)
+                        # number, frame area, region area, fill rate:
+                        ax[0].annotate("#{} FA={}, RA={}, Fill rate={}%".format(cntr, round(circle_area), region.area,
+                                                                                round(region.area / (circle_area) * 100,
+                                                                                      2)), (minc - 30, minr - 30),
+                                       color='white', weight='bold',
+                                       fontsize=5, ha='left', va='center')
 
-                    ax[0].add_patch(circle)
-                    ax[0].add_patch(dot)
-                                #number, frame area, region area, fill rate:
-                    ax[0].annotate("#{} FA={}, RA={}, Fill rate={}%".format(cntr, round(circle_area),region.area, round(region.area/(circle_area)*100, 2)), (minc - 30, minr - 30), color='white', weight='bold',
-                                fontsize=5, ha='left', va='center')
-
-                    ax[1].annotate("#{} FA={}, RA={}, Fill rate={}%".format(cntr, round(circle_area),region.area, round(region.area/(circle_area)*100, 2)), (minc - 30, minr - 30), color='white', weight='bold',
-                                fontsize=5, ha='left', va='center')
-                    print()
-
-        ax[0].set_axis_off()
-        ax[1].set_axis_off()
-        plt.tight_layout()
-        plt.show()
+        if (PLOTTING_ENABLED):
+            ax[0].set_axis_off()
+            ax[1].set_axis_off()
+            plt.tight_layout()
+            plt.show()
 
 
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
@@ -330,10 +337,17 @@ def plot_3d(image):
     ax.set_zlim(0, p.shape[2])
     plt.show()
 
+
 import imageio
 from IPython import display
 from matplotlib import cm
 
+
 def make_a_GIF(imgs, GIFNAME):
     imageio.mimsave(f'./{GIFNAME}.gif', imgs, duration=0.1)
     display.Image(f'./{GIFNAME}.gif', format='png')
+
+
+def plotly_img(dataset):
+    fig = px.imshow(dataset, animation_frame=0, binary_string=True, labels=dict(animation_frame="slice"))
+    fig.show()

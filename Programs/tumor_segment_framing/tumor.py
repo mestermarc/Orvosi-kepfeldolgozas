@@ -61,9 +61,9 @@ class Tumor:
         else:
             return False
 
-    def plot_Tumor(self):
+    def plot_Tumor(self, num):
         fig2, ax2 = plt.subplots(figsize=(10, 6))
-        ax2.imshow(self.masks[0])
+        ax2.imshow(self.masks[num])
 
         dot = mpatches.Circle((self.centerx, self.centery), 40, fill=None, edgecolor='red', linewidth=1)
         ax2.add_patch(dot)
@@ -123,6 +123,8 @@ def plot_all_sus(all_tumors, all):
         if(all):
             for num in range(0, tumor.getLenght()):
                 tumor.plot_onlyTumor(num)
+
         elif tumor.getLenght()>1:
             for num in range(0, tumor.getLenght()):
                 tumor.plot_onlyTumor(num)
+                tumor.plot_Tumor(num)
