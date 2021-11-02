@@ -224,7 +224,7 @@ def aboutSQ(a, b, REGION_AREA, TRESHOLD, AREA_TRESHOLD_PERCENT):
     framearea = getCircleArea(a, b)
     # enters, if the width and height values are close enough (TRESHOLD) AND
     if (abs(a - b) < TRESHOLD and framearea * AREA_TRESHOLD_PERCENT < REGION_AREA):
-        print("Success, bc: framearea: {}, REGION_AREA: {}".format(framearea, REGION_AREA))
+        #print("Success, bc: framearea: {}, REGION_AREA: {}".format(framearea, REGION_AREA))
         # print("SUCCESS")
         return True
     else:
@@ -237,7 +237,6 @@ def segment_frame_plot(tumors, image, base_image, MINSIZE, MAXSIZE, PADDING, PLO
     # originally:
     FRAMING_TRESHOLD = 100
     AREA_TRESHOLD_PERCENTAGE = 0.45
-
 
     is_all_zero = np.all((image == 0))
     if not is_all_zero:
@@ -288,6 +287,10 @@ def segment_frame_plot(tumors, image, base_image, MINSIZE, MAXSIZE, PADDING, PLO
                                              radius * 3,
                                              fill=False, ec=(1, 0, 0, 1), linewidth=1)
 
+                    circle2 = mpatches.Circle((minc + (maxc - minc) / 2, minr + (maxr - minr) / 2),
+                                             radius * 3,
+                                             fill=False, ec=(1, 1, 0, 1), linewidth=2)
+
                     dot = mpatches.Circle((minc + (maxc - minc) / 2, minr + (maxr - minr) / 2), 0.9,
                                           fill='black', edgecolor='black', facecolor='black', linewidth=1)
                     # print("smallerarea: {}, REGION_AREA{}".format(pow(min(maxc - minc, maxr - minr), 2) * math.pi,region.area))
@@ -295,19 +298,31 @@ def segment_frame_plot(tumors, image, base_image, MINSIZE, MAXSIZE, PADDING, PLO
                     x = minc + (maxc - minc) / 2
                     y = minr + (maxr - minr) / 2
 
-                    tmp_tumor = Tumor(framing, image, region.area, pow(min(maxc - minc, maxr - minr), 2) * math.pi, x,
-                                      y)
-                    findTumor(tumors, tmp_tumor)
+                    tmp_tumor = Tumor(framing, image, region.area, pow(min(maxc - minc, maxr - minr), 2) * math.pi, x,y)
+                    notTheFirst = findTumor(tumors, tmp_tumor)
                     if (PLOTTING_ENABLED):
                         ax[0].add_patch(framing)
 
-                        ax[1].add_patch(circle)
+                        if notTheFirst:
+                            ax[1].add_patch(circle2)
+                            ax[0].annotate(
+                                "NOT FIRST!",
+                                (minc - 10, minr - 10),
+                                color='red', weight='bold',
+                                fontsize=5, ha='left', va='center')
+                        else:
+                            ax[1].add_patch(circle)
+
                         ax[0].add_patch(dot)
                         # number, frame area, region area, fill rate:
-                        ax[0].annotate("#{} Fill rate={}, area= {}%".format(cntr, round(region.area / (circle_area) * 100, 2),region.area),
-                                       (minc - 30, minr - 30),
-                                       color='white', weight='bold',
-                                       fontsize=5, ha='left', va='center')
+                        ax[0].annotate(
+                            "#{} Fill rate={}, area= {}%".format(cntr, round(region.area / (circle_area) * 100, 2),
+                                                                 region.area),
+                            (minc - 30, minr - 30),
+                            color='white', weight='bold',
+                            fontsize=5, ha='left', va='center')
+                        print("#{} Fill rate={}%, area= {}, ({},{})".format(cntr, round(region.area / (circle_area) * 100, 2),
+                                                                 region.area,x,y))
 
         if (PLOTTING_ENABLED):
             ax[0].set_axis_off()

@@ -17,10 +17,12 @@ FOLDER_PATH = "E:/Egyetem/AI/_Orvosi képfeldolgozás/Datasets/Berci_mellkas/"
 featured_cmaps = ["bone", "hot", "twilight", "PuBuGn", "inferno", "seismic", "hsv", "twilight_shifted", "spring",
                   "Accent", "bwr", "afmhot"]
 
-# load DICOM images:
-load_DICOM = False
+# 0 - load DICOM images
+# 1 - load ndarray - full dataset
+# 2 - load tumors
+load_DICOM = 1
 
-if (load_DICOM):
+if load_DICOM == 0:
     CT_dicom = pre.load_CT(FOLDER_PATH)
     CT_kepsorozat = pre.get_pixels_hu(CT_dicom)
     print("CT_kepsorozat ndarray is ready.")
@@ -37,6 +39,18 @@ if (load_DICOM):
     np.save('cropped_CT.npy', cropped_CT)
     print("cropped_CT.npy saved.")
 
+    np.save('bercidataset_small.npy', internal_dataset[110:120])
+    print("bercidataset_small.npy saved.")
+
+    np.save('cropped_CT_small.npy', cropped_CT[110:120])
+    print("cropped_CT_small.npy saved.")
+
+elif load_DICOM == 1:
+    internal_dataset = np.load('bercidataset_small.npy')
+    print("Opened presaved ndarray (bercidataset_small)")
+
+    cropped_CT = np.load('cropped_CT_small.npy')
+    print("Opened presaved ndarray (cropped_CT_small)")
 
 else:
     internal_dataset = np.load('bercidataset.npy')
@@ -86,19 +100,12 @@ elif MODE == 1:
     # tumor.plot_all(tumors,MASK, croppedOne2 )
 
 elif MODE == 2:
-    elsodaganat = internal_dataset[112:117]
-    masodikdaganat = internal_dataset[114:118]
+    PLOT = True
+    for i in range(2,len(internal_dataset)):
+        pre.segment_frame_plot(tumors, internal_dataset[i], cropped_CT[i], 50, 2000, 15, PLOT)
+        print("{}. image:".format(i))
 
-    SHOW_ALL = True
-    i = 112
-    for pic in elsodaganat:
-        pre.segment_frame_plot(tumors, pic, cropped_CT[i], 50, 2000, 15, True)
-        i += 1
-
-    i = 114
-    for pic in masodikdaganat:
-        pre.segment_frame_plot(tumors, pic, cropped_CT[i], 50, 500, 15, True)
-        i += 1
+    tumor.plot_all_sus(tumors, False)
 
 elif MODE == 3:
     print("plot3D")
