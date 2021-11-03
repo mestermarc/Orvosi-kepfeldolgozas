@@ -231,7 +231,7 @@ def aboutSQ(a, b, REGION_AREA, TRESHOLD, AREA_TRESHOLD_PERCENT):
         return False
 
 
-def segment_frame_plot(tumors, image, base_image, MINSIZE, MAXSIZE, PADDING, PLOTTING_ENABLED):
+def segment_frame_plot(tumors, image, base_image, MINSIZE, MAXSIZE, PADDING, PLOTTING_ENABLED, imageNUM):
     # tresholds:
 
     # originally:
@@ -287,9 +287,7 @@ def segment_frame_plot(tumors, image, base_image, MINSIZE, MAXSIZE, PADDING, PLO
                                              radius * 3,
                                              fill=False, ec=(1, 0, 0, 1), linewidth=1)
 
-                    circle2 = mpatches.Circle((minc + (maxc - minc) / 2, minr + (maxr - minr) / 2),
-                                             radius * 3,
-                                             fill=False, ec=(1, 1, 0, 1), linewidth=2)
+
 
                     dot = mpatches.Circle((minc + (maxc - minc) / 2, minr + (maxr - minr) / 2), 0.9,
                                           fill='black', edgecolor='black', facecolor='black', linewidth=1)
@@ -299,11 +297,17 @@ def segment_frame_plot(tumors, image, base_image, MINSIZE, MAXSIZE, PADDING, PLO
                     y = minr + (maxr - minr) / 2
 
                     tmp_tumor = Tumor(framing, image, region.area, pow(min(maxc - minc, maxr - minr), 2) * math.pi, x,y)
-                    notTheFirst = findTumor(tumors, tmp_tumor)
+                    tmp_tumor.setStartimg(imageNUM)
+                    length = findTumor(tumors, tmp_tumor)
+                    circle2 = mpatches.Circle((minc + (maxc - minc) / 2, minr + (maxr - minr) / 2),
+                                              radius * 3,
+                                              fill=False, ec=(1, 1, 0, 1), linewidth=length)
+
+
                     if (PLOTTING_ENABLED):
                         ax[0].add_patch(framing)
 
-                        if notTheFirst:
+                        if length>0:
                             ax[1].add_patch(circle2)
                             ax[0].annotate(
                                 "NOT FIRST!",

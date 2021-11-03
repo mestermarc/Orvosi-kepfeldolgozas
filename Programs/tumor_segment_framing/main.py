@@ -102,7 +102,7 @@ elif MODE == 1:
 elif MODE == 2:
     PLOT = True
     for i in range(2,len(internal_dataset)):
-        pre.segment_frame_plot(tumors, internal_dataset[i], cropped_CT[i], 50, 2000, 15, PLOT)
+        pre.segment_frame_plot(tumors, internal_dataset[i], cropped_CT[i], 50, 2000, 15, PLOT, i)
         print("{}. image:".format(i))
 
     tumor.plot_all_sus(tumors, False)

@@ -13,6 +13,8 @@ class Tumor:
         self.centerx = centerx
         self.centery = centery
         self.masks = []
+        self.id = 1
+        self.imgnum = 0
 
         self.rectangles.append(rectangle)
         self.masks.append(mask)
@@ -28,11 +30,24 @@ class Tumor:
         self.centerx = centerx
         self.centery = centery
         print("Slice added!")
+        return self.len
 
     # TODO delete disappeared slices
 
     def getLenght(self):
         return self.len
+
+    def setId(self, id):
+        self.id = id
+
+    def getId(self):
+        return self.id
+
+    def setStartimg(self, startImg):
+        self.imgnum = startImg
+
+    def getStartIMG(self):
+        return self.imgnum
 
     def getcenterx(self):
         return self.centerx
@@ -94,21 +109,26 @@ class Tumor:
 
 
 def findTumor(all_tumors, new_tumor: Tumor):
+    length = 0
     if len(all_tumors) == 0:
         all_tumors.append(new_tumor)
+        return length
     else:
         for tumor in all_tumors:
-            if tumor.isIdenticalTumor(new_tumor.centerx, new_tumor.centery, 100):
-                # tmptum = copy.deepcopy(Tumor(new_tumor))
-                # def addSlice(self, rect,mask, regionArea, frameArea, centerx, centery):
-                tumor.addSlice(new_tumor.getfirstRect(), new_tumor.getfirstMask(), new_tumor.getArea(),
-                               new_tumor.getRectArea(), new_tumor.centerx, new_tumor.centery)
-                # if we found it, we can break the for loop
-                return True
+            if tumor.getStartIMG() != new_tumor.getStartIMG():
+                #print("imgnum1:{},  imgnum2:{}".format(tumor.getStartIMG(), new_tumor.getStartIMG()))
+                if tumor.isIdenticalTumor(new_tumor.centerx, new_tumor.centery, 50):
+                    # tmptum = copy.deepcopy(Tumor(new_tumor))
+                    # def addSlice(self, rect,mask, regionArea, frameArea, centerx, centery):
+                    length = tumor.addSlice(new_tumor.getfirstRect(), new_tumor.getfirstMask(), new_tumor.getArea(),
+                                   new_tumor.getRectArea(), new_tumor.centerx, new_tumor.centery)
+                    # if we found it, we can break the for loop
+                    return length
         #the coordinates shows us no matches, so, it is a new tumor:
+        new_tumor.setId(len(all_tumors)+1)
         all_tumors.append(new_tumor)
-        print("No match, added a new tumor!")
-        return False
+        print("No match, added a new tumor! id:{}, imgnum:{}".format(new_tumor.getId(),new_tumor.getStartIMG()))
+        return length
 
 
 def plot_all(all_tumors, MASK, orig):
