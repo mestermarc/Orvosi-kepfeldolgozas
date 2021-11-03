@@ -100,12 +100,14 @@ elif MODE == 1:
     # tumor.plot_all(tumors,MASK, croppedOne2 )
 
 elif MODE == 2:
-    PLOT = True
+    PLOT_ENABLED = False
     for i in range(2,len(internal_dataset)):
-        pre.segment_frame_plot(tumors, internal_dataset[i], cropped_CT[i], 50, 2000, 15, PLOT, i)
+        pre.segment_frame_plot(tumors, internal_dataset[i], cropped_CT[i], 50, 2000, 15, PLOT_ENABLED, i)
         print("{}. image:".format(i))
 
-    tumor.plot_all_sus(tumors, False)
+    #tumor.plot_all_sus(tumors, False)
+
+    tumor.plot_sus(tumors)
 
 elif MODE == 3:
     print("plot3D")

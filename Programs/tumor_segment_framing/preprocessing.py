@@ -1,30 +1,23 @@
-import pydicom as dicom
-import matplotlib.pylab as plt
 import math
-import copy
 import os
-import numpy as np
-# segmentation:
-from PIL import Image
-from skimage.transform import resize
 
-import skimage.segmentation as seg
-import plotly.express as px
-from skimage import io
-
-# segmentation:
-from skimage import measure, morphology
-from skimage.morphology import ball, binary_closing
-from skimage.measure import label, regionprops
 import cv2
+import matplotlib.patches as mpatches
+import matplotlib.pylab as plt
+import numpy as np
+import plotly.express as px
+import pydicom as dicom
 import scipy
-from skimage import data
+import skimage.segmentation as seg
+# segmentation:
+from skimage import measure
+from skimage.color import label2rgb
 from skimage.filters import threshold_otsu
-from skimage.segmentation import clear_border
 from skimage.measure import label, regionprops
 from skimage.morphology import closing, square
-from skimage.color import label2rgb
-import matplotlib.patches as mpatches
+from skimage.segmentation import clear_border
+# segmentation:
+from skimage.transform import resize
 
 from tumor import Tumor, findTumor
 
@@ -224,7 +217,7 @@ def aboutSQ(a, b, REGION_AREA, TRESHOLD, AREA_TRESHOLD_PERCENT):
     framearea = getCircleArea(a, b)
     # enters, if the width and height values are close enough (TRESHOLD) AND
     if (abs(a - b) < TRESHOLD and framearea * AREA_TRESHOLD_PERCENT < REGION_AREA):
-        #print("Success, bc: framearea: {}, REGION_AREA: {}".format(framearea, REGION_AREA))
+        # print("Success, bc: framearea: {}, REGION_AREA: {}".format(framearea, REGION_AREA))
         # print("SUCCESS")
         return True
     else:
@@ -236,7 +229,7 @@ def segment_frame_plot(tumors, image, base_image, MINSIZE, MAXSIZE, PADDING, PLO
 
     # originally:
     FRAMING_TRESHOLD = 100
-    AREA_TRESHOLD_PERCENTAGE = 0.45
+    AREA_TRESHOLD_PERCENTAGE = 0.40
 
     is_all_zero = np.all((image == 0))
     if not is_all_zero:
@@ -287,8 +280,6 @@ def segment_frame_plot(tumors, image, base_image, MINSIZE, MAXSIZE, PADDING, PLO
                                              radius * 3,
                                              fill=False, ec=(1, 0, 0, 1), linewidth=1)
 
-
-
                     dot = mpatches.Circle((minc + (maxc - minc) / 2, minr + (maxr - minr) / 2), 0.9,
                                           fill='black', edgecolor='black', facecolor='black', linewidth=1)
                     # print("smallerarea: {}, REGION_AREA{}".format(pow(min(maxc - minc, maxr - minr), 2) * math.pi,region.area))
@@ -296,22 +287,22 @@ def segment_frame_plot(tumors, image, base_image, MINSIZE, MAXSIZE, PADDING, PLO
                     x = minc + (maxc - minc) / 2
                     y = minr + (maxr - minr) / 2
 
-                    tmp_tumor = Tumor(framing, image, region.area, pow(min(maxc - minc, maxr - minr), 2) * math.pi, x,y)
+                    tmp_tumor = Tumor(framing, image, region.area, pow(min(maxc - minc, maxr - minr), 2) * math.pi, x,
+                                      y)
                     tmp_tumor.setStartimg(imageNUM)
                     length = findTumor(tumors, tmp_tumor)
                     circle2 = mpatches.Circle((minc + (maxc - minc) / 2, minr + (maxr - minr) / 2),
                                               radius * 3,
-                                              fill=False, ec=(1, 1, 0, 1), linewidth=length)
-
+                                              fill=False, ec=(1, 1, 0, 1), linewidth=length*1.3)
 
                     if (PLOTTING_ENABLED):
                         ax[0].add_patch(framing)
 
-                        if length>0:
+                        if length > 0:
                             ax[1].add_patch(circle2)
-                            ax[0].annotate(
-                                "NOT FIRST!",
-                                (minc - 10, minr - 10),
+                            ax[1].annotate(
+                                "LEN:{}".format(length),
+                                (x, y),
                                 color='red', weight='bold',
                                 fontsize=5, ha='left', va='center')
                         else:
@@ -320,13 +311,14 @@ def segment_frame_plot(tumors, image, base_image, MINSIZE, MAXSIZE, PADDING, PLO
                         ax[0].add_patch(dot)
                         # number, frame area, region area, fill rate:
                         ax[0].annotate(
-                            "#{} Fill rate={}, area= {}%".format(cntr, round(region.area / (circle_area) * 100, 2),
+                            "#{} Fill rate={}%, area= {}".format(cntr, round(region.area / circle_area * 100, 2),
                                                                  region.area),
-                            (minc - 30, minr - 30),
+                            (minc + radius*0.9, minr + radius*0.5),
                             color='white', weight='bold',
                             fontsize=5, ha='left', va='center')
-                        print("#{} Fill rate={}%, area= {}, ({},{})".format(cntr, round(region.area / (circle_area) * 100, 2),
-                                                                 region.area,x,y))
+                        print("#{} Fill rate={}%, area= {}, ({},{}), radius is:{}".format(cntr,
+                                                                            round(region.area / circle_area * 100, 2),
+                                                                            region.area, x, y,radius))
 
         if (PLOTTING_ENABLED):
             ax[0].set_axis_off()
@@ -361,7 +353,6 @@ def plot_3d(image):
 
 import imageio
 from IPython import display
-from matplotlib import cm
 
 
 def make_a_GIF(imgs, GIFNAME):

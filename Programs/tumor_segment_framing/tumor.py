@@ -61,6 +61,12 @@ class Tumor:
     def getfirstMask(self):
         return self.masks[0]
 
+    def getMask(self, num):
+        return self.masks[num]
+
+    def getRect(self, num):
+        return self.rectangles[num]
+
     def getRectArea(self):
         return self.frame_area
 
@@ -147,7 +153,21 @@ def plot_all_sus(all_tumors, all):
             for num in range(0, tumor.getLenght()):
                 tumor.plot_onlyTumor(num)
 
-        elif tumor.getLenght() > 1:
+        elif tumor.getLenght() > 2:
             for num in range(0, tumor.getLenght()):
                 #tumor.plot_onlyTumor(num)
                 tumor.plot_Tumor(num)
+
+def plot_sus(all_tumors):
+    for tumor in all_tumors:
+        if(tumor.getLenght()>2):
+            fig = plt.figure(figsize=(50, 50))
+            for num in range(0, tumor.getLenght()):
+                ax = fig.add_subplot(2, 5, num+1)
+                plt.imshow(tumor.getMask(num), cmap="bone")
+                ax.title.set_text(num)
+                ax.set_axis_off()
+                #dot = mpatches.Circle((tumor.getcenterx(), tumor.getcentery()), 40, fill=None, edgecolor='red', linewidth=1)
+                rt = tumor.getRect(num)
+                ax.add_patch(rt)
+            plt.show()
