@@ -70,8 +70,8 @@ class Tumor:
     def getRectArea(self):
         return self.frame_area
 
-    def getArea(self):
-        return self.area
+    def getArea(self, num):
+        return self.area[num]
 
     def isIdenticalTumor(self, newcenterx, newcentery, TRESHOLD):
         if abs(newcenterx - self.centerx) < TRESHOLD and abs(newcentery - self.centery) < TRESHOLD:
@@ -79,7 +79,7 @@ class Tumor:
                   "Other centers are: x:{}, y:{}".format(self.centerx, self.centery, newcenterx, newcentery))
             return True
         else:
-            #print("x:{}, y:{}  !!==  x2:{}, y2:{}".format(self.centerx, self.centery, newcenterx, newcentery))
+            # print("x:{}, y:{}  !!==  x2:{}, y2:{}".format(self.centerx, self.centery, newcenterx, newcentery))
             return False
 
     def plot_Tumor(self, num):
@@ -122,18 +122,18 @@ def findTumor(all_tumors, new_tumor: Tumor):
     else:
         for tumor in all_tumors:
             if tumor.getStartIMG() != new_tumor.getStartIMG():
-                #print("imgnum1:{},  imgnum2:{}".format(tumor.getStartIMG(), new_tumor.getStartIMG()))
-                if tumor.isIdenticalTumor(new_tumor.centerx, new_tumor.centery, 50):
+                # print("imgnum1:{},  imgnum2:{}".format(tumor.getStartIMG(), new_tumor.getStartIMG()))
+                if tumor.isIdenticalTumor(new_tumor.centerx, new_tumor.centery, 5):
                     # tmptum = copy.deepcopy(Tumor(new_tumor))
                     # def addSlice(self, rect,mask, regionArea, frameArea, centerx, centery):
-                    length = tumor.addSlice(new_tumor.getfirstRect(), new_tumor.getfirstMask(), new_tumor.getArea(),
-                                   new_tumor.getRectArea(), new_tumor.centerx, new_tumor.centery)
+                    length = tumor.addSlice(new_tumor.getfirstRect(), new_tumor.getfirstMask(), new_tumor.getArea(0),
+                                            new_tumor.getRectArea(), new_tumor.centerx, new_tumor.centery)
                     # if we found it, we can break the for loop
                     return length
-        #the coordinates shows us no matches, so, it is a new tumor:
-        new_tumor.setId(len(all_tumors)+1)
+        # the coordinates shows us no matches, so, it is a new tumor:
+        new_tumor.setId(len(all_tumors) + 1)
         all_tumors.append(new_tumor)
-        print("No match, added a new tumor! id:{}, imgnum:{}".format(new_tumor.getId(),new_tumor.getStartIMG()))
+        print("No match, added a new tumor! id:{}, imgnum:{}".format(new_tumor.getId(), new_tumor.getStartIMG()))
         return length
 
 
@@ -155,19 +155,25 @@ def plot_all_sus(all_tumors, all):
 
         elif tumor.getLenght() > 2:
             for num in range(0, tumor.getLenght()):
-                #tumor.plot_onlyTumor(num)
+                # tumor.plot_onlyTumor(num)
                 tumor.plot_Tumor(num)
 
+
 def plot_sus(all_tumors):
+    LOGGING_ENABLED = True
     for tumor in all_tumors:
-        if(tumor.getLenght()>2):
-            fig = plt.figure(figsize=(50, 50))
-            for num in range(0, tumor.getLenght()):
-                ax = fig.add_subplot(2, 5, num+1)
-                plt.imshow(tumor.getMask(num), cmap="bone")
-                ax.title.set_text(num)
-                ax.set_axis_off()
-                #dot = mpatches.Circle((tumor.getcenterx(), tumor.getcentery()), 40, fill=None, edgecolor='red', linewidth=1)
-                rt = tumor.getRect(num)
-                ax.add_patch(rt)
-            plt.show()
+        fig = plt.figure(figsize=(50, 10))
+        title = "Suspicious form: ID:{}, lenght:{}".format(tumor.getId(), tumor.getLenght())
+        if LOGGING_ENABLED:
+            print(title)
+        fig.suptitle(title, fontsize=16)
+
+        for num in range(0, tumor.getLenght()):
+            ax = fig.add_subplot(1, 5, num + 1)
+            plt.imshow(tumor.getMask(num), cmap='coolwarm')
+            ax.title.set_text("#{}, area = {}".format(num, tumor.getArea(num)))
+            ax.set_axis_off()
+            # dot = mpatches.Circle((tumor.getcenterx(), tumor.getcentery()), 40, fill=None, edgecolor='red', linewidth=1)
+            rt = tumor.getRect(num)
+            ax.add_patch(rt)
+        plt.show()

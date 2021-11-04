@@ -18,8 +18,8 @@ featured_cmaps = ["bone", "hot", "twilight", "PuBuGn", "inferno", "seismic", "hs
                   "Accent", "bwr", "afmhot"]
 
 # 0 - load DICOM images
-# 1 - load ndarray - full dataset
-# 2 - load tumors
+# 1 - load small dataset for testing
+# 2 - load tumors- full dataset
 load_DICOM = 1
 
 if load_DICOM == 0:
@@ -71,11 +71,6 @@ print("dataset size is: {}".format(len(internal_dataset)))
 MODE = 2
 
 tumors = []
-"""
-for pic in internal_dataset[35:40]:
-    plt.imshow(pic, cmap="bone")
-    plt.show()
-"""
 
 if MODE == 0:
 
@@ -100,14 +95,15 @@ elif MODE == 1:
     # tumor.plot_all(tumors,MASK, croppedOne2 )
 
 elif MODE == 2:
-    PLOT_ENABLED = False
-    for i in range(2,len(internal_dataset)):
-        pre.segment_frame_plot(tumors, internal_dataset[i], cropped_CT[i], 50, 2000, 15, PLOT_ENABLED, i)
+    PLOT_ENABLED = True
+    for i in range(0,len(internal_dataset)):
         print("{}. image:".format(i))
+        print(np.shape(internal_dataset[2]))
+        pre.segment_frame_plot(tumors, internal_dataset[i], cropped_CT[i], 1, 1000, 5, PLOT_ENABLED, i)
 
     #tumor.plot_all_sus(tumors, False)
 
-    tumor.plot_sus(tumors)
+    #tumor.plot_sus(tumors)
 
 elif MODE == 3:
     print("plot3D")
@@ -118,3 +114,6 @@ elif MODE == 4:
     pre.plotly_img(internal_dataset)
 
 print("Found {} suspicious forms:".format(len(tumors)))
+tumors = [tumor for tumor in tumors if 2 < tumor.getLenght() < 5]
+print("Found {} more suspicious forms:".format(len(tumors)))
+tumor.plot_sus(tumors)

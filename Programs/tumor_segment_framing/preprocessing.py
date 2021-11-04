@@ -161,9 +161,9 @@ def crop_LUNG(image, SCALE, minr, minc, maxr, maxc):
 
     crop = np.array(crop, dtype='uint8')
 
-    # resize image TODO interpolation changes:
-    resized = cv2.resize(crop, dim, interpolation=cv2.INTER_CUBIC)
-    return resized
+    # resize image TODO do i need resize?:
+    #resized = cv2.resize(crop, dim, interpolation=cv2.INTER_CUBIC)
+    return crop
 
 
 def crop_rgb_LUNG(image, SCALE, minr, minc, maxr, maxc):
@@ -175,8 +175,8 @@ def crop_rgb_LUNG(image, SCALE, minr, minc, maxr, maxc):
     height = int(crop.shape[0] * SCALE / 100)
     dim = (height, width)
 
-    rgb_resized = resize(crop, dim)
-    return rgb_resized
+    #rgb_resized = resize(crop, dim)
+    return crop
 
 
 def crop_LUNG_dataset(dataset, SCALE):
@@ -216,8 +216,8 @@ def aboutSQ(a, b, REGION_AREA, TRESHOLD, AREA_TRESHOLD_PERCENT):
     # bigcircle_radius
     framearea = getCircleArea(a, b)
     # enters, if the width and height values are close enough (TRESHOLD) AND
-    if (abs(a - b) < TRESHOLD and framearea * AREA_TRESHOLD_PERCENT < REGION_AREA):
-        # print("Success, bc: framearea: {}, REGION_AREA: {}".format(framearea, REGION_AREA))
+    if abs(a - b) < TRESHOLD and framearea * AREA_TRESHOLD_PERCENT < REGION_AREA:
+        print("Success, bc: framearea: {}, REGION_AREA: {}".format(framearea, REGION_AREA))
         # print("SUCCESS")
         return True
     else:
@@ -228,7 +228,7 @@ def segment_frame_plot(tumors, image, base_image, MINSIZE, MAXSIZE, PADDING, PLO
     # tresholds:
 
     # originally:
-    FRAMING_TRESHOLD = 100
+    FRAMING_TRESHOLD = 5
     AREA_TRESHOLD_PERCENTAGE = 0.40
 
     is_all_zero = np.all((image == 0))
@@ -251,7 +251,7 @@ def segment_frame_plot(tumors, image, base_image, MINSIZE, MAXSIZE, PADDING, PLO
             dest = base_image * 0.95 + image * (1.0 - 0.95)
             dest2 = base_image * 0.9 + image * (1.0 - 0.9)
 
-            ax[0].imshow(dest, cmap="afmhot")
+            ax[0].imshow(image, cmap="afmhot")
             ax[1].imshow(dest2, cmap="bone")
 
         for region in regionprops(label_image):
@@ -293,7 +293,7 @@ def segment_frame_plot(tumors, image, base_image, MINSIZE, MAXSIZE, PADDING, PLO
                     length = findTumor(tumors, tmp_tumor)
                     circle2 = mpatches.Circle((minc + (maxc - minc) / 2, minr + (maxr - minr) / 2),
                                               radius * 3,
-                                              fill=False, ec=(1, 1, 0, 1), linewidth=length*1.3)
+                                              fill=False, ec=(1, 1, 0, 1), linewidth=length*0.3)
 
                     if (PLOTTING_ENABLED):
                         ax[0].add_patch(framing)
