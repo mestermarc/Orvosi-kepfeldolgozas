@@ -1,3 +1,5 @@
+from statistics import median, mode
+
 import matplotlib.pylab as plt
 import matplotlib.patches as mpatches
 import copy
@@ -33,6 +35,12 @@ class Tumor:
         return self.len
 
     # TODO delete disappeared slices
+
+    def getArea(self, num):
+        return self.area[num]
+
+    def getArea_array(self):
+        return self.area
 
     def getLenght(self):
         return self.len
@@ -113,6 +121,18 @@ class Tumor:
         # ax3.imshow(self.masks[0][340:419, 280:353])
         plt.show()
 
+    def calc_lenght(self):
+        #calculated for mininmum 3 long slices
+        areas = self.getArea_array()
+        middle_element = self.getArea(int(len(areas) / 2))
+        str = "id: {}#, areas len:{};\nmedian:{}, firstarea:{}, lastarea:{}, mode:{}".format(self.getId(),len(areas), median(areas), areas[0], areas[self.getLenght()-1], middle_element)
+        if areas[0]<median(areas) and areas[self.getLenght() - 1] < median(areas) and  median(areas< middle_element):
+            result = "Suspicious!"
+        else:
+            result = "Not suspicious!"
+        print(str+result)
+        return str+"\n"+result
+
 
 def findTumor(all_tumors, new_tumor: Tumor):
     length = 0
@@ -162,12 +182,14 @@ def plot_all_sus(all_tumors, all):
 def plot_sus(all_tumors):
     LOGGING_ENABLED = True
     for tumor in all_tumors:
+
+        res = tumor.calc_lenght()
+
         fig = plt.figure(figsize=(50, 10))
-        title = "Suspicious form: ID:{}, lenght:{}".format(tumor.getId(), tumor.getLenght())
+        title = "Suspicious form: ID:{}, lenght:{}".format(tumor.getId(), tumor.getLenght())+"\n"+res
         if LOGGING_ENABLED:
             print(title)
         fig.suptitle(title, fontsize=16)
-
         for num in range(0, tumor.getLenght()):
             ax = fig.add_subplot(1, 5, num + 1)
             plt.imshow(tumor.getMask(num), cmap='coolwarm')
@@ -177,3 +199,4 @@ def plot_sus(all_tumors):
             rt = tumor.getRect(num)
             ax.add_patch(rt)
         plt.show()
+

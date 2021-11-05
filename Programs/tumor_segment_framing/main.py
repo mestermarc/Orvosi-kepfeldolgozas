@@ -95,8 +95,8 @@ elif MODE == 1:
     # tumor.plot_all(tumors,MASK, croppedOne2 )
 
 elif MODE == 2:
-    PLOT_ENABLED = True
-    for i in range(0,len(internal_dataset)):
+    PLOT_ENABLED = False
+    for i in range(2,len(internal_dataset)-2):
         print("{}. image:".format(i))
         print(np.shape(internal_dataset[2]))
         pre.segment_frame_plot(tumors, internal_dataset[i], cropped_CT[i], 1, 1000, 5, PLOT_ENABLED, i)
