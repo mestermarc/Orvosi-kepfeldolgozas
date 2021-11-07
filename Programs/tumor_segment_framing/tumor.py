@@ -7,6 +7,7 @@ import copy
 
 from numpy import average
 
+
 class Tumor:
     def __init__(self, rectangle, mask, regionArea, frameArea, centerx, centery):
         super().__init__()
@@ -124,16 +125,24 @@ class Tumor:
         plt.show()
 
     def calc_lenght(self):
-        #calculated for mininmum 3 long slices
+        # calculated for mininmum 3 long slices
         areas = self.getArea_array()
         middle_element = self.getArea(int(len(areas) / 2))
-        str = "id: {}#, areas len:{};\navg area:{}, firstarea:{}, lastarea:{}, middle element:{}\nmaxarea:{}, radius:{}".format(self.getId(),len(areas), average(areas), areas[0], areas[self.getLenght()-1], middle_element, max(areas),round(2*getRadius(max(areas)),2))
-        if areas[0]<average(areas) and areas[self.getLenght() - 1] < average(areas) and  average(areas)<max(areas):
+        str = "id: {}#, areas len:{};\n" \
+              "avg area:{}, firstarea:{}, lastarea:{}, middle element:{}\n" \
+              "maxarea:{}, radius:{}\n" \
+              " {}  <  {}" \
+            .format(self.getId(), len(areas),
+                    round(average(areas), 2), areas[0], areas[self.getLenght() - 1], middle_element,
+                    max(areas), round(2 * getRadius(max(areas)), 2),
+                    round(2 * getRadius(max(areas)), 2)/2, self.getLenght()+1)
+        #TODO: implement condition: round(2 * getRadius(max(areas)), 2)/2 < self.getLenght()+1)
+        if areas[0] < average(areas) and areas[self.getLenght() - 1] < average(areas) and average(areas) < max(areas):
             result = "Suspicious!"
         else:
             result = "Not suspicious!"
-        print(str+result)
-        return str+"\n"+result
+        print(str + result)
+        return str + "\n" + result
 
 
 def findTumor(all_tumors, new_tumor: Tumor):
@@ -188,7 +197,7 @@ def plot_sus(all_tumors):
         res = tumor.calc_lenght()
 
         fig = plt.figure(figsize=(50, 10))
-        title = "Suspicious form: ID:{}, lenght:{}".format(tumor.getId(), tumor.getLenght())+"\n"+res
+        title = "Suspicious form: ID:{}, lenght:{}".format(tumor.getId(), tumor.getLenght()) + "\n" + res
         if LOGGING_ENABLED:
             print(title)
         fig.suptitle(title, fontsize=16)
