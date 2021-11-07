@@ -1,9 +1,11 @@
+import math
 from statistics import median, mode
 
 import matplotlib.pylab as plt
 import matplotlib.patches as mpatches
 import copy
 
+from numpy import average
 
 class Tumor:
     def __init__(self, rectangle, mask, regionArea, frameArea, centerx, centery):
@@ -125,8 +127,8 @@ class Tumor:
         #calculated for mininmum 3 long slices
         areas = self.getArea_array()
         middle_element = self.getArea(int(len(areas) / 2))
-        str = "id: {}#, areas len:{};\nmedian:{}, firstarea:{}, lastarea:{}, mode:{}".format(self.getId(),len(areas), median(areas), areas[0], areas[self.getLenght()-1], middle_element)
-        if areas[0]<median(areas) and areas[self.getLenght() - 1] < median(areas) and  median(areas< middle_element):
+        str = "id: {}#, areas len:{};\navg area:{}, firstarea:{}, lastarea:{}, middle element:{}\nmaxarea:{}, radius:{}".format(self.getId(),len(areas), average(areas), areas[0], areas[self.getLenght()-1], middle_element, max(areas),round(2*getRadius(max(areas)),2))
+        if areas[0]<average(areas) and areas[self.getLenght() - 1] < average(areas) and  average(areas)<max(areas):
             result = "Suspicious!"
         else:
             result = "Not suspicious!"
@@ -200,3 +202,6 @@ def plot_sus(all_tumors):
             ax.add_patch(rt)
         plt.show()
 
+
+def getRadius(area):
+    return math.sqrt(area / math.pi)
