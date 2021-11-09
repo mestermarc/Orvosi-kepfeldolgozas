@@ -125,6 +125,7 @@ class Tumor:
         plt.show()
 
     def calc_lenght(self):
+        sus = False
         # calculated for mininmum 3 long slices
         areas = self.getArea_array()
         middle_element = self.getArea(int(len(areas) / 2))
@@ -143,6 +144,14 @@ class Tumor:
             result = "Not suspicious!"
         print(str + result)
         return str + "\n" + result
+
+    def tumor_lookalike(self):
+        # calculated for mininmum 3 long slices
+        areas = self.getArea_array()
+        if areas[0] < average(areas) and areas[self.getLenght() - 1] < average(areas) and average(areas) < max(areas) and round(2 * getRadius(max(areas)), 2)/2 < self.getLenght()+1 and round(2 * getRadius(max(areas)), 2)/2 > self.getLenght()-2:
+            return True
+        else:
+            return False
 
 
 def findTumor(all_tumors, new_tumor: Tumor):
@@ -202,7 +211,7 @@ def plot_sus(all_tumors):
             print(title)
         fig.suptitle(title, fontsize=16)
         for num in range(0, tumor.getLenght()):
-            ax = fig.add_subplot(1, 5, num + 1)
+            ax = fig.add_subplot(1, 8, num + 1)
             plt.imshow(tumor.getMask(num), cmap='coolwarm')
             ax.title.set_text("#{}, area = {}".format(num, tumor.getArea(num)))
             ax.set_axis_off()

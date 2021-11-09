@@ -21,7 +21,8 @@ from skimage.transform import resize
 
 from tumor import Tumor, findTumor
 
-LUNG_TRESH = -600
+# LUNG_TRESH = -600
+LUNG_TRESH = -500
 
 
 def load_CT(PATH):
@@ -162,7 +163,7 @@ def crop_LUNG(image, SCALE, minr, minc, maxr, maxc):
     crop = np.array(crop, dtype='uint8')
 
     # resize image TODO do i need resize?:
-    #resized = cv2.resize(crop, dim, interpolation=cv2.INTER_CUBIC)
+    # resized = cv2.resize(crop, dim, interpolation=cv2.INTER_CUBIC)
     return crop
 
 
@@ -175,7 +176,7 @@ def crop_rgb_LUNG(image, SCALE, minr, minc, maxr, maxc):
     height = int(crop.shape[0] * SCALE / 100)
     dim = (height, width)
 
-    #rgb_resized = resize(crop, dim)
+    # rgb_resized = resize(crop, dim)
     return crop
 
 
@@ -228,6 +229,9 @@ def segment_frame_plot(tumors, image, base_image, MINSIZE, MAXSIZE, PADDING, PLO
     # tresholds:
 
     # originally:
+    # FRAMING_TRESHOLD = 5
+    # AREA_TRESHOLD_PERCENTAGE = 0.40
+
     FRAMING_TRESHOLD = 5
     AREA_TRESHOLD_PERCENTAGE = 0.40
 
@@ -235,7 +239,9 @@ def segment_frame_plot(tumors, image, base_image, MINSIZE, MAXSIZE, PADDING, PLO
     if not is_all_zero:
         thresh = threshold_otsu(image)
 
-        bw = closing(image > thresh, square(3))
+        #hope it wont causes any problems in the future
+        #bw = closing(image > thresh, square(2))
+        bw = closing(image > thresh, square(2))
         cntr = 0
         # remove artifacts connected to image border
         cleared = clear_border(bw)
@@ -251,7 +257,7 @@ def segment_frame_plot(tumors, image, base_image, MINSIZE, MAXSIZE, PADDING, PLO
             dest = base_image * 0.95 + image * (1.0 - 0.95)
             dest2 = base_image * 0.9 + image * (1.0 - 0.9)
 
-            ax[0].imshow(image, cmap="afmhot")
+            ax[0].imshow(image, interpolation="lanczos",  cmap="afmhot")
             ax[1].imshow(dest2, cmap="bone")
 
         for region in regionprops(label_image):
@@ -281,7 +287,7 @@ def segment_frame_plot(tumors, image, base_image, MINSIZE, MAXSIZE, PADDING, PLO
                                              fill=False, ec=(1, 0, 0, 1), linewidth=1)
 
                     dot = mpatches.Circle((minc + (maxc - minc) / 2, minr + (maxr - minr) / 2), 0.9,
-                                          fill='black', edgecolor='black', facecolor='black', linewidth=1)
+                                          fill='red', edgecolor='red', facecolor='red', linewidth=0.5)
                     # print("smallerarea: {}, REGION_AREA{}".format(pow(min(maxc - minc, maxr - minr), 2) * math.pi,region.area))
                     cntr += 1
                     x = minc + (maxc - minc) / 2
@@ -293,7 +299,7 @@ def segment_frame_plot(tumors, image, base_image, MINSIZE, MAXSIZE, PADDING, PLO
                     length = findTumor(tumors, tmp_tumor)
                     circle2 = mpatches.Circle((minc + (maxc - minc) / 2, minr + (maxr - minr) / 2),
                                               radius * 3,
-                                              fill=False, ec=(1, 1, 0, 1), linewidth=length*0.3)
+                                              fill=False, ec=(1, 1, 0, 1), linewidth=length * 0.3)
 
                     if (PLOTTING_ENABLED):
                         ax[0].add_patch(framing)
@@ -313,12 +319,14 @@ def segment_frame_plot(tumors, image, base_image, MINSIZE, MAXSIZE, PADDING, PLO
                         ax[0].annotate(
                             "#{} Fill rate={}%, area= {}".format(cntr, round(region.area / circle_area * 100, 2),
                                                                  region.area),
-                            (minc + radius*0.9, minr + radius*0.5),
-                            color='white', weight='bold',
+                            (minc + radius * 0.9, minr + radius * 0.5),
+                            color='cyan', weight='bold',
                             fontsize=5, ha='left', va='center')
                         print("#{} Fill rate={}%, area= {}, ({},{}), radius is:{}".format(cntr,
-                                                                            round(region.area / circle_area * 100, 2),
-                                                                            region.area, x, y,radius))
+                                                                                          round(
+                                                                                              region.area / circle_area * 100,
+                                                                                              2),
+                                                                                          region.area, x, y, radius))
 
         if (PLOTTING_ENABLED):
             ax[0].set_axis_off()
@@ -348,7 +356,181 @@ def plot_3d(image):
     ax.set_xlim(0, p.shape[0])
     ax.set_ylim(0, p.shape[1])
     ax.set_zlim(0, p.shape[2])
+    fig.show()
+    # fig.write_html("LUNG.html")
     plt.show()
+
+
+def plotly_3d(image):
+    # Position the scan upright,
+    # so the head of the patient would be at the top facing the
+    # camera
+    p = image.transpose(2, 1, 0)
+
+    verts, faces, _, _ = measure.marching_cubes_lewiner(p)
+
+    mesh = Poly3DCollection(verts[faces], alpha=0.70)
+    face_color = [0.45, 0.45, 0.75]
+    mesh.set_facecolor(face_color)
+    """
+    ax.add_collection3d(mesh)
+    ax.set_xlim(0, p.shape[0])
+    ax.set_ylim(0, p.shape[1])
+    ax.set_zlim(0, p.shape[2])
+    """
+    import plotly.graph_objects as go
+    import pandas as pd
+
+    z_data = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/api_docs/mt_bruno_elevation.csv')
+    fig = go.Figure(data=[go.Surface(z=z_data.values)])
+    print(z_data.values[2])
+    print()
+    print(z_data.values)
+    # fig = go.Figure(data=[go.Mesh3d(z=p, color='rgb(255,0,0)')])
+
+    fig.update_layout(title='Mt Bruno Elevation', autosize=False,
+                      width=500, height=500,
+                      margin=dict(l=65, r=50, b=65, t=90))
+
+    fig.show()
+
+
+""" 
+import mayavi
+    from mayavi import mlab
+    mlab.figure(1, fgcolor=(0, 0, 0), bgcolor=(1, 1, 1))
+    surH = mlab.surf(image, warp_scale='auto', mask=image.mask)
+    mlab.show()
+"""
+
+
+def plotly_probe(image):
+    import plotly.graph_objects as go
+    import numpy as np
+
+    z1 = np.array([
+        [8.83, 8.89, 8.81, 8.87, 8.9, 8.87],
+        [8.89, 8.94, 8.85, 8.94, 8.96, 8.92],
+        [8.84, 8.9, 8.82, 8.92, 8.93, 8.91],
+        [8.79, 8.85, 8.79, 8.9, 8.94, 8.92],
+        [8.79, 8.88, 8.81, 8.9, 8.95, 8.92],
+        [8.8, 8.82, 8.78, 8.91, 8.94, 8.92],
+        [8.75, 8.78, 8.77, 8.91, 8.95, 8.92],
+        [8.8, 8.8, 8.77, 8.91, 8.95, 8.94],
+        [8.74, 8.81, 8.76, 8.93, 8.98, 8.99],
+        [8.89, 8.99, 8.92, 9.1, 9.13, 9.11],
+        [8.97, 8.97, 8.91, 9.09, 9.11, 9.11],
+        [9.04, 9.08, 9.05, 9.25, 9.28, 9.27],
+        [9, 9.01, 9, 9.2, 9.23, 9.2],
+        [8.99, 8.99, 8.98, 9.18, 9.2, 9.19],
+        [8.93, 8.97, 8.97, 9.18, 9.2, 9.18]
+    ])
+
+    z2 = z1 + 1
+    z3 = z1 - 1
+
+    fig = go.Figure(data=[
+        go.Surface(z=z1),
+        go.Surface(z=z2, showscale=False, opacity=0.9),
+        go.Surface(z=z3, showscale=False, opacity=0.9)
+
+    ])
+
+    fig.show()
+
+
+def slicer(image):
+    # Import data
+    import time
+    import numpy as np
+
+    from skimage import io
+
+    vol = io.imread("https://s3.amazonaws.com/assets.datacamp.com/blog_assets/attention-mri.tif")
+    volume = vol.T
+    r, c = volume[0].shape
+
+    # Define frames
+    import plotly.graph_objects as go
+    nb_frames = 68
+
+    fig = go.Figure(frames=[go.Frame(data=go.Surface(
+        z=(6.7 - k * 0.1) * np.ones((r, c)),
+        surfacecolor=np.flipud(volume[67 - k]),
+        cmin=0, cmax=200
+    ),
+        name=str(k)  # you need to name the frame for the animation to behave properly
+    )
+        for k in range(nb_frames)])
+
+    # Add data to be displayed before animation starts
+    fig.add_trace(go.Surface(
+        z=6.7 * np.ones((r, c)),
+        surfacecolor=np.flipud(volume[67]),
+        colorscale='Gray',
+        cmin=0, cmax=200,
+        colorbar=dict(thickness=20, ticklen=4)
+    ))
+
+    def frame_args(duration):
+        return {
+            "frame": {"duration": duration},
+            "mode": "immediate",
+            "fromcurrent": True,
+            "transition": {"duration": duration, "easing": "linear"},
+        }
+
+    sliders = [
+        {
+            "pad": {"b": 10, "t": 60},
+            "len": 0.9,
+            "x": 0.1,
+            "y": 0,
+            "steps": [
+                {
+                    "args": [[f.name], frame_args(0)],
+                    "label": str(k),
+                    "method": "animate",
+                }
+                for k, f in enumerate(fig.frames)
+            ],
+        }
+    ]
+
+    # Layout
+    fig.update_layout(
+        title='Slices in volumetric data',
+        width=600,
+        height=600,
+        scene=dict(
+            zaxis=dict(range=[-0.1, 6.8], autorange=False),
+            aspectratio=dict(x=1, y=1, z=1),
+        ),
+        updatemenus=[
+            {
+                "buttons": [
+                    {
+                        "args": [None, frame_args(50)],
+                        "label": "&#9654;",  # play symbol
+                        "method": "animate",
+                    },
+                    {
+                        "args": [[None], frame_args(0)],
+                        "label": "&#9724;",  # pause symbol
+                        "method": "animate",
+                    },
+                ],
+                "direction": "left",
+                "pad": {"r": 10, "t": 70},
+                "type": "buttons",
+                "x": 0.1,
+                "y": 0,
+            }
+        ],
+        sliders=sliders
+    )
+
+    fig.show()
 
 
 import imageio
@@ -363,3 +545,19 @@ def make_a_GIF(imgs, GIFNAME):
 def plotly_img(dataset):
     fig = px.imshow(dataset, animation_frame=0, binary_string=True, labels=dict(animation_frame="slice"))
     fig.show()
+
+
+def cleared_tum(dataset):
+    new = []
+    for image in dataset:
+        thresh = threshold_otsu(image)
+
+        bw = closing(image > thresh, square(3))
+        cntr = 0
+        # remove artifacts connected to image border
+        cleared = clear_border(bw)
+
+        # label image regions
+        label_image = label(cleared)
+        new.append(label_image)
+    return new

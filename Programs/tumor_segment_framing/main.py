@@ -68,9 +68,10 @@ print("dataset size is: {}".format(len(internal_dataset)))
 # 3: plot 3D
 # 4: plotly
 
-MODE = 2
+MODE = 1
 
 tumors = []
+
 
 if MODE == 0:
 
@@ -86,34 +87,37 @@ if MODE == 0:
     tumor.plot_all_sus(tumors, plot_all)
 
 elif MODE == 1:
-    sum_pic = pre.sum_pics(internal_dataset)
 
-    pre.segment_frame_plot(tumors, sum_pic, 50, 500, 30)
-    plot_all = True
-    # tumor.plot_all_sus(tumors, plot_all)
-    MASK = True
-    # tumor.plot_all(tumors,MASK, croppedOne2 )
-
-elif MODE == 2:
     PLOT_ENABLED = False
-    for i in range(2,len(internal_dataset)-2):
+    for i in range(3, 7):
         print("{}. image:".format(i))
         print(np.shape(internal_dataset[2]))
         pre.segment_frame_plot(tumors, internal_dataset[i], cropped_CT[i], 1, 1000, 5, PLOT_ENABLED, i)
 
-    #tumor.plot_all_sus(tumors, False)
+    tumor.plot_all_sus(tumors, False)
+
+elif MODE == 2:
+    PLOT_ENABLED = False
+    for i in range(0,len(internal_dataset)-1):
+        print("{}. image:".format(i))
+        print(np.shape(internal_dataset[2]))
+        pre.segment_frame_plot(tumors, internal_dataset[i], cropped_CT[i], 1, 1000, 5, PLOT_ENABLED, i)
+
+    tumor.plot_all_sus(tumors, False)
 
     #tumor.plot_sus(tumors)
 
 elif MODE == 3:
     print("plot3D")
-    inter = internal_dataset[15:60]
-    pre.plot_3d(inter)
+    #inter = internal_dataset[15:60]
+    #pre.plot_3d(internal_dataset[::-1])
+    pre.plot_3d(internal_dataset[::-1])
 
 elif MODE == 4:
-    pre.plotly_img(internal_dataset)
+    pre.slicer(internal_dataset)
 
 print("Found {} suspicious forms:".format(len(tumors)))
-tumors = [tumor for tumor in tumors if 2 < tumor.getLenght() < 5]
+tumors = [tumor for tumor in tumors if 2 < tumor.getLenght() < 8]
+tumors = [tumor for tumor in tumors if tumor.tumor_lookalike()]
 print("Found {} more suspicious forms:".format(len(tumors)))
 tumor.plot_sus(tumors)
