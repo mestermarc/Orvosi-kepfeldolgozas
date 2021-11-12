@@ -293,7 +293,7 @@ def segment_frame_plot(tumors, image, base_image, MINSIZE, MAXSIZE, PADDING, PLO
                     x = minc + (maxc - minc) / 2
                     y = minr + (maxr - minr) / 2
 
-                    tmp_tumor = Tumor(framing, image, region.area, pow(min(maxc - minc, maxr - minr), 2) * math.pi, x,
+                    tmp_tumor = Tumor(framing, image, region.area,circle_area, x,
                                       y)
                     tmp_tumor.setStartimg(imageNUM)
                     length = findTumor(tumors, tmp_tumor)

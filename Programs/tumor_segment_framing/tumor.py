@@ -25,6 +25,8 @@ class Tumor:
         self.masks.append(mask)
         self.area.append(regionArea)
         self.frame_area.append(frameArea)
+        self.description =" "
+        self.probability = 0
 
     def addSlice(self, rect, mask, regionArea, frameArea, centerx: int, centery: int):
         self.len += 1
@@ -38,6 +40,18 @@ class Tumor:
         return self.len
 
     # TODO delete disappeared slices
+
+    def get_desc(self):
+        return self.description
+
+    def add_desc(self, text):
+        self.description += text
+
+    def add_proba(self, weight):
+        self.probability += weight
+
+    def get_proba(self):
+        return self.probability
 
     def getArea(self, num):
         return self.area[num]
@@ -153,6 +167,120 @@ class Tumor:
         else:
             return False
 
+    def calculate_proba(self):
+        #1
+        if self.getLenght()>=3:
+            self.add_desc("#1 This form is long enough{}\n".format(self.getLenght()))
+            self.add_proba(0.1)
+
+            # 2
+            area_rate = self.calc_area_rate()
+            self.add_proba(area_rate)
+            self.add_desc("#2 Area / Circle drawn around {}%\n".format(area_rate))
+
+            # 3
+            areas = self.getArea_array()
+            first_area = areas[0]
+            last_area = areas[self.getLenght()-1]
+            avg_area = average(areas)
+
+            if first_area < avg_area and last_area < avg_area:
+                self.add_proba(0.3)
+                self.add_desc("#3 Avg is greater than first and last \n".format(area_rate))
+            elif first_area < avg_area or last_area < avg_area:
+                self.add_proba(0.15)
+                self.add_desc("#3 Avg is greater than first OR last \n".format(area_rate))
+            else:
+                self.add_proba(-0.4)
+                self.add_desc("#3 Avg is smaller than first and last \n".format(area_rate))
+
+            #4
+            diameter = 2 * getRadius(max(areas))
+            if round( diameter/ 2, 2) < self.getLenght() + 1:
+                self.add_proba(0.2)
+                self.add_desc("Shape's diameter/2({}) < {} \n".format(diameter/2,self.getLenght() + 1))
+            else:
+                self.add_proba(-0.2)
+
+            #5
+            if round(diameter/ 2 ,2) > (self.getLenght()+1)/2:
+                self.add_proba(0.2)
+                self.add_desc("Shape's diameter/2({}) > {} \n".format(diameter/2,(self.getLenght()+1)/2))
+            else:
+                self.add_proba(-0.2)
+
+            #6
+            if(areas_growing(areas)):
+                self.add_desc("#6 Areas growing to middle\n")
+                self.add_proba(0.2)
+
+            #6
+            if (areas_decreasing(areas)):
+                self.add_desc("#6 Areas decreasing from middle\n")
+                self.add_proba(0.2)
+            #7
+            if (largest_in_middle(areas)):
+                self.add_desc("#7 Largest area is in the middle!\n")
+                self.add_proba(0.2)
+
+            #8
+            if (middle_ok(areas)):
+                self.add_desc("#8 Middle areas are close enough!\n")
+                self.add_proba(0.2)
+
+        else:
+            self.add_desc("This form isnt long enough{}\n".format(self.getLenght()))
+
+        self.add_desc("This form's probability is:{}".format(self.get_proba()))
+
+        return True
+
+
+    def calc_area_rate(self):
+        sum = 0
+        for slice_num in range(0,self.getLenght()-1):
+            sum += (self.area[slice_num] / self.frame_area[slice_num])
+        return sum/self.getLenght()
+
+
+def largest_in_middle(areas):
+    if len(areas) % 2 == 0:
+        element1 = areas[int(len(areas) / 2) - 1]      # middle element (smaller)
+        element2 = areas[int(len(areas)/2)]
+        if(max(areas)==max(element1,element2)):
+            return True
+    elif(max(areas) == areas[int(len(areas)/2)]):
+        return True
+    return False
+
+def areas_growing(areas):
+    if len(areas) % 2 == 0:
+        togo = int(len(areas) / 2) - 1      # middle element (smaller)
+    else:
+        togo = int(len(areas) / 2)
+    for elsok in range(0, togo):
+        if(areas[elsok]>=areas[togo]):
+            return False
+    return True
+
+def areas_decreasing(areas):
+    togo = int(len(areas) / 2)       # middle element (greater)
+    for utolsok in range(togo+1, len(areas)):
+        print(areas[utolsok],"<=",areas[togo])
+        if(areas[togo]<= areas[utolsok]):
+            return False
+    return True
+
+def middle_ok(areas):
+    if len(areas) % 2 == 0:
+        element1 = areas[int(len(areas) / 2) - 1]      # middle element (smaller)
+        element2 = areas[int(len(areas)/2)]
+        if 0.65 < (element1/element2) < 1.5:
+            return True
+        else:
+            return False
+    else:
+        return True
 
 def findTumor(all_tumors, new_tumor: Tumor):
     length = 0
@@ -211,7 +339,7 @@ def plot_sus(all_tumors):
             print(title)
         fig.suptitle(title, fontsize=16)
         for num in range(0, tumor.getLenght()):
-            ax = fig.add_subplot(1, 8, num + 1)
+            ax = fig.add_subplot(1, 5, num + 1)
             plt.imshow(tumor.getMask(num), cmap='coolwarm')
             ax.title.set_text("#{}, area = {}".format(num, tumor.getArea(num)))
             ax.set_axis_off()
@@ -220,6 +348,27 @@ def plot_sus(all_tumors):
             ax.add_patch(rt)
         plt.show()
 
+def plot_sus_proba(all_tumors):
+    LOGGING_ENABLED = True
+    for tumor in all_tumors:
+
+        #res = tumor.calc_lenght()
+        res = tumor.calculate_proba()
+
+        fig = plt.figure(figsize=(50, 10))
+        title = "Suspicious form: ID:{}, lenght:{}".format(tumor.getId(), tumor.getLenght()) + "\n" + tumor.get_desc()
+        if LOGGING_ENABLED:
+            print(title)
+        fig.suptitle(title, fontsize=16)
+        for num in range(0, tumor.getLenght()):
+            ax = fig.add_subplot(1, 5, num + 1)
+            plt.imshow(tumor.getMask(num), cmap='coolwarm')
+            ax.title.set_text("#{}, area = {}".format(num, tumor.getArea(num)))
+            ax.set_axis_off()
+            # dot = mpatches.Circle((tumor.getcenterx(), tumor.getcentery()), 40, fill=None, edgecolor='red', linewidth=1)
+            rt = tumor.getRect(num)
+            ax.add_patch(rt)
+        plt.show()
 
 def getRadius(area):
     return math.sqrt(area / math.pi)

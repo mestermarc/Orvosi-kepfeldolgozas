@@ -68,7 +68,7 @@ print("dataset size is: {}".format(len(internal_dataset)))
 # 3: plot 3D
 # 4: plotly
 
-MODE = 1
+MODE = 2
 
 tumors = []
 
@@ -101,9 +101,9 @@ elif MODE == 2:
     for i in range(0,len(internal_dataset)-1):
         print("{}. image:".format(i))
         print(np.shape(internal_dataset[2]))
-        pre.segment_frame_plot(tumors, internal_dataset[i], cropped_CT[i], 1, 1000, 5, PLOT_ENABLED, i)
+        pre.segment_frame_plot(tumors, internal_dataset[i], cropped_CT[i], 3, 1000, 5, PLOT_ENABLED, i)
 
-    tumor.plot_all_sus(tumors, False)
+    #tumor.plot_all_sus(tumors, False)
 
     #tumor.plot_sus(tumors)
 
@@ -116,8 +116,9 @@ elif MODE == 3:
 elif MODE == 4:
     pre.slicer(internal_dataset)
 
-print("Found {} suspicious forms:".format(len(tumors)))
-tumors = [tumor for tumor in tumors if 2 < tumor.getLenght() < 8]
+print("Found {} forms:".format(len(tumors)))
+tumors = [tumor for tumor in tumors if 2 < tumor.getLenght() < 5]
+tumor.plot_sus_proba(tumors)
 tumors = [tumor for tumor in tumors if tumor.tumor_lookalike()]
 print("Found {} more suspicious forms:".format(len(tumors)))
 tumor.plot_sus(tumors)
