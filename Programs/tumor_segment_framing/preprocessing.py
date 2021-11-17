@@ -22,7 +22,7 @@ from skimage.transform import resize
 from tumor import Tumor, findTumor
 
 # LUNG_TRESH = -600
-LUNG_TRESH = -500
+LUNG_TRESH = -600
 
 
 def load_CT(PATH):

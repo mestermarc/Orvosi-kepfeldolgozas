@@ -197,14 +197,14 @@ class Tumor:
             #4
             diameter = 2 * getRadius(max(areas))
             if round( diameter/ 2, 2) < self.getLenght() + 1:
-                self.add_proba(0.2)
+                self.add_proba(0.4)
                 self.add_desc("Shape's diameter/2({}) < {} \n".format(diameter/2,self.getLenght() + 1))
             else:
                 self.add_proba(-0.2)
 
             #5
             if round(diameter/ 2 ,2) > (self.getLenght()+1)/2:
-                self.add_proba(0.2)
+                self.add_proba(0.4)
                 self.add_desc("Shape's diameter/2({}) > {} \n".format(diameter/2,(self.getLenght()+1)/2))
             else:
                 self.add_proba(-0.2)
@@ -213,15 +213,21 @@ class Tumor:
             if(areas_growing(areas)):
                 self.add_desc("#6 Areas growing to middle\n")
                 self.add_proba(0.2)
+            else:
+                self.add_proba(-0.2)
 
             #6
             if (areas_decreasing(areas)):
                 self.add_desc("#6 Areas decreasing from middle\n")
                 self.add_proba(0.2)
+            else:
+                self.add_proba(-0.2)
             #7
             if (largest_in_middle(areas)):
                 self.add_desc("#7 Largest area is in the middle!\n")
                 self.add_proba(0.2)
+            else:
+                self.add_proba(-0.2)
 
             #8
             if (middle_ok(areas)):
@@ -233,7 +239,10 @@ class Tumor:
 
         self.add_desc("This form's probability is:{}".format(self.get_proba()))
 
-        return True
+        if(self.get_proba()>1.5):
+            return True
+        else:
+            return False
 
 
     def calc_area_rate(self):
@@ -355,20 +364,21 @@ def plot_sus_proba(all_tumors):
         #res = tumor.calc_lenght()
         res = tumor.calculate_proba()
 
-        fig = plt.figure(figsize=(50, 10))
-        title = "Suspicious form: ID:{}, lenght:{}".format(tumor.getId(), tumor.getLenght()) + "\n" + tumor.get_desc()
-        if LOGGING_ENABLED:
-            print(title)
-        fig.suptitle(title, fontsize=16)
-        for num in range(0, tumor.getLenght()):
-            ax = fig.add_subplot(1, 5, num + 1)
-            plt.imshow(tumor.getMask(num), cmap='coolwarm')
-            ax.title.set_text("#{}, area = {}".format(num, tumor.getArea(num)))
-            ax.set_axis_off()
-            # dot = mpatches.Circle((tumor.getcenterx(), tumor.getcentery()), 40, fill=None, edgecolor='red', linewidth=1)
-            rt = tumor.getRect(num)
-            ax.add_patch(rt)
-        plt.show()
+        if(res):
+            fig = plt.figure(figsize=(50, 10))
+            title = "Suspicious form: ID:{}, lenght:{}".format(tumor.getId(), tumor.getLenght()) + "\n" + tumor.get_desc()
+            if LOGGING_ENABLED:
+                print(title)
+            fig.suptitle(title, fontsize=16)
+            for num in range(0, tumor.getLenght()):
+                ax = fig.add_subplot(1, 5, num + 1)
+                plt.imshow(tumor.getMask(num), cmap='coolwarm')
+                ax.title.set_text("#{}, area = {}".format(num, tumor.getArea(num)))
+                ax.set_axis_off()
+                # dot = mpatches.Circle((tumor.getcenterx(), tumor.getcentery()), 40, fill=None, edgecolor='red', linewidth=1)
+                rt = tumor.getRect(num)
+                ax.add_patch(rt)
+            plt.show()
 
 def getRadius(area):
     return math.sqrt(area / math.pi)

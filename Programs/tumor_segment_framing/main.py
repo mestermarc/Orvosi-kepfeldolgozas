@@ -119,6 +119,7 @@ elif MODE == 4:
 print("Found {} forms:".format(len(tumors)))
 tumors = [tumor for tumor in tumors if 2 < tumor.getLenght() < 5]
 tumor.plot_sus_proba(tumors)
-tumors = [tumor for tumor in tumors if tumor.tumor_lookalike()]
+#tumors = [tumor for tumor in tumors if tumor.tumor_lookalike()]
+tumors = [tumor for tumor in tumors if tumor.get_proba() > 1.5]
 print("Found {} more suspicious forms:".format(len(tumors)))
 tumor.plot_sus(tumors)
