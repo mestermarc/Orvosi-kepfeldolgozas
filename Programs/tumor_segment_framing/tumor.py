@@ -4,6 +4,7 @@ from statistics import median, mode
 import matplotlib.pylab as plt
 import matplotlib.patches as mpatches
 import copy
+import numpy as np
 
 from numpy import average
 
@@ -59,6 +60,9 @@ class Tumor:
     def getArea_array(self):
         return self.area
 
+    def get_AllMasks(self):
+        return self.masks
+
     def getLenght(self):
         return self.len
 
@@ -99,12 +103,10 @@ class Tumor:
         return self.area[num]
 
     def isIdenticalTumor(self, newcenterx, newcentery, TRESHOLD):
-        if abs(newcenterx - self.centerx) < TRESHOLD and abs(newcentery - self.centery) < TRESHOLD:
-            print("These tumors are identical!\n Centers are: x:{}, y:{}\n"
-                  "Other centers are: x:{}, y:{}".format(self.centerx, self.centery, newcenterx, newcentery))
+        if abs(newcenterx - self.centerx) < TRESHOLD \
+                and abs(newcentery - self.centery) < TRESHOLD:
             return True
         else:
-            # print("x:{}, y:{}  !!==  x2:{}, y2:{}".format(self.centerx, self.centery, newcenterx, newcentery))
             return False
 
     def plot_Tumor(self, num):
@@ -239,7 +241,7 @@ class Tumor:
 
         self.add_desc("This form's probability is:{}".format(self.get_proba()))
 
-        if(self.get_proba()>1.5):
+        if(self.get_proba()>2):
             return True
         else:
             return False
@@ -347,13 +349,13 @@ def plot_sus(all_tumors):
         if LOGGING_ENABLED:
             print(title)
         fig.suptitle(title, fontsize=16)
-        for num in range(0, tumor.getLenght()):
-            ax = fig.add_subplot(1, 5, num + 1)
+        for num in range(0, tumor.getLenght()-1):
+            ax = fig.add_subplot(1, 5, num+1)
             plt.imshow(tumor.getMask(num), cmap='coolwarm')
             ax.title.set_text("#{}, area = {}".format(num, tumor.getArea(num)))
             ax.set_axis_off()
             # dot = mpatches.Circle((tumor.getcenterx(), tumor.getcentery()), 40, fill=None, edgecolor='red', linewidth=1)
-            rt = tumor.getRect(num)
+            rt = tumor.getRect(num-1)
             ax.add_patch(rt)
         plt.show()
 
@@ -380,5 +382,49 @@ def plot_sus_proba(all_tumors):
                 ax.add_patch(rt)
             plt.show()
 
+
 def getRadius(area):
     return math.sqrt(area / math.pi)
+
+def plot_data(tumor):
+    fig = plt.figure(figsize=(50, 10))
+    fig.suptitle("sus tumor slices:", fontsize=16)
+    stg = []
+    for num in range(0, tumor.getLenght()):
+        ax = fig.add_subplot(1, tumor.getLenght(), num + 1)
+        coords = tumor.rectangles[num].get_xy()
+        width = tumor.rectangles[num].get_width()
+        x = coords[0]
+        y = coords[1]
+        ax.imshow(tumor.getMask(num)[y:y + width, x:x + width], cmap="bone", interpolation="nearest")  # crop_img = img[y:y+h, x:x+w
+        ax.title.set_text("#{}".format(num))
+        ax.set_axis_off()
+        stg.append(np.array([tumor.getMask(num)[y:y + width, x:x + width]]))
+        print(np.array([tumor.getMask(num)[y:y + width, x:x + width]]))
+    plt.show()
+    return stg
+
+def layers_3D(slice):
+    from mpl_toolkits.mplot3d import Axes3D
+    import numpy as np
+    import matplotlib.pyplot as plt
+
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+
+    x = np.linspace(0, 1, 100)
+    X, Y = np.meshgrid(x, x)
+    Z = np.sin(X) * np.sin(Y)
+
+    levels = np.linspace(-1, 1, 40)
+
+    ax.contourf(X, Y, .1 * np.sin(3 * X) * np.sin(5 * Y), zdir='z', levels=.1 * levels)
+    ax.contourf(X, Y, 3 , zdir='z', levels=3 + .1 * levels)
+    ax.contourf(X, Y, 7 + .1 * np.sin(7 * X) * np.sin(3 * Y), zdir='z', levels=7 + .1 * levels)
+
+    ax.legend()
+    ax.set_xlim3d(0, 1)
+    ax.set_ylim3d(0, 1)
+    ax.set_zlim3d(0, 10)
+
+    plt.show()

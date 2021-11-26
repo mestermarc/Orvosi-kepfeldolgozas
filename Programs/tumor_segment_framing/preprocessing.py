@@ -28,9 +28,8 @@ LUNG_TRESH = -600
 def load_CT(PATH):
     slices = [dicom.dcmread(PATH + '/' + s) for s in os.listdir(PATH)]
     slices = sorted(slices, key=lambda s: s.SliceLocation)
-    # kellett a reverse
-    sli = slices[::-1]
-    return sli
+    slices = slices[::-1]
+    return slices
 
 
 def get_pixels_hu(scans):
@@ -213,13 +212,10 @@ def getCircleArea(a, b):
 
 
 def aboutSQ(a, b, REGION_AREA, TRESHOLD, AREA_TRESHOLD_PERCENT):
-    # if the frame is "circle" enough:
-    # bigcircle_radius
     framearea = getCircleArea(a, b)
-    # enters, if the width and height values are close enough (TRESHOLD) AND
-    if abs(a - b) < TRESHOLD and framearea * AREA_TRESHOLD_PERCENT < REGION_AREA:
-        print("Success, bc: framearea: {}, REGION_AREA: {}".format(framearea, REGION_AREA))
-        # print("SUCCESS")
+    # true, if the width and height values are close enough (TRESHOLD) AND the area
+    if abs(a - b) < TRESHOLD and\
+        framearea * AREA_TRESHOLD_PERCENT < REGION_AREA:
         return True
     else:
         return False
@@ -241,13 +237,13 @@ def segment_frame_plot(tumors, image, base_image, MINSIZE, MAXSIZE, PADDING, PLO
 
         #hope it wont causes any problems in the future
         #bw = closing(image > thresh, square(2))
-        bw = closing(image > thresh, square(2))
+        #bw = closing(image > thresh, square(2))
         cntr = 0
         # remove artifacts connected to image border
-        cleared = clear_border(bw)
+        #cleared = clear_border(image)
 
         # label image regions
-        label_image = label(cleared)
+        label_image = label(image)
         # to make the background transparent, pass the value of `bg_label`,
         # and leave `bg_color` as `None` and `kind` as `overlay`
         image_label_overlay = label2rgb(label_image, image=image, bg_label=0)

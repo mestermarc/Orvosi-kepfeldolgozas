@@ -8,7 +8,7 @@ import img_processing
 import matplotlib.pylab as plt
 
 #           test or full dataset:
-SMALL_DATASET = True
+SMALL_DATASET = False
 
 #   full dataset
 #FOLDER_PATH = "E:/Egyetem/AI/_Orvosi képfeldolgozás/Datasets/positive_lung_CT/tudodaganat/"

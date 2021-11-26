@@ -17,7 +17,7 @@ FOLDER_PATH = "E:/Egyetem/AI/_Orvosi képfeldolgozás/Datasets/Berci_mellkas/"
 featured_cmaps = ["bone", "hot", "twilight", "PuBuGn", "inferno", "seismic", "hsv", "twilight_shifted", "spring",
                   "Accent", "bwr", "afmhot"]
 
-# 0 - load DICOM images
+# 0 - prepare and load DICOM images
 # 1 - load small dataset for testing
 # 2 - load tumors- full dataset
 load_DICOM = 1
@@ -72,7 +72,6 @@ MODE = 2
 
 tumors = []
 
-
 if MODE == 0:
 
     #   tumor.plot_all_sus(tumors)
@@ -98,28 +97,35 @@ elif MODE == 1:
 
 elif MODE == 2:
     PLOT_ENABLED = False
-    for i in range(0,len(internal_dataset)-1):
+    for i in range(0, len(internal_dataset) - 1):
         print("{}. image:".format(i))
         print(np.shape(internal_dataset[2]))
         pre.segment_frame_plot(tumors, internal_dataset[i], cropped_CT[i], 3, 1000, 5, PLOT_ENABLED, i)
 
-    #tumor.plot_all_sus(tumors, False)
+    # tumor.plot_all_sus(tumors, False)
 
-    #tumor.plot_sus(tumors)
+    # tumor.plot_sus(tumors)
 
 elif MODE == 3:
     print("plot3D")
-    #inter = internal_dataset[15:60]
-    #pre.plot_3d(internal_dataset[::-1])
+    # inter = internal_dataset[15:60]
+    # pre.plot_3d(internal_dataset[::-1])
     pre.plot_3d(internal_dataset[::-1])
 
 elif MODE == 4:
     pre.slicer(internal_dataset)
 
 print("Found {} forms:".format(len(tumors)))
-tumors = [tumor for tumor in tumors if 2 < tumor.getLenght() < 5]
+
+tumors = [tumor for tumor in tumors if tumor.getLenght() >= 3]
+# tumors = [tumor for tumor in tumors if tumor.get_proba()]
+print("Found {} REALLY suspicious forms:".format(len(tumors)))
+
 tumor.plot_sus_proba(tumors)
-#tumors = [tumor for tumor in tumors if tumor.tumor_lookalike()]
-tumors = [tumor for tumor in tumors if tumor.get_proba() > 1.5]
-print("Found {} more suspicious forms:".format(len(tumors)))
-tumor.plot_sus(tumors)
+tumors = [tumor for tumor in tumors if tumor.get_proba() > 2.3]
+
+for sustumor in tumors:
+    temp = tumor.plot_data(sustumor)
+    tt = sustumor.get_AllMasks()
+
+print(temp)
