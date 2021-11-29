@@ -20,7 +20,7 @@ featured_cmaps = ["bone", "hot", "twilight", "PuBuGn", "inferno", "seismic", "hs
 # 0 - prepare and load DICOM images
 # 1 - load small dataset for testing
 # 2 - load tumors- full dataset
-load_DICOM = 2
+load_DICOM = 1
 
 if load_DICOM == 0:
     CT_dicom = pre.load_CT(FOLDER_PATH)

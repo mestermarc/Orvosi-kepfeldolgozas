@@ -227,7 +227,6 @@ def segment_frame_plot(tumors, image, base_image, MINSIZE, MAXSIZE, PADDING, PLO
     # originally:
     # FRAMING_TRESHOLD = 5
     # AREA_TRESHOLD_PERCENTAGE = 0.40
-
     FRAMING_TRESHOLD = 5
     AREA_TRESHOLD_PERCENTAGE = 0.40
 

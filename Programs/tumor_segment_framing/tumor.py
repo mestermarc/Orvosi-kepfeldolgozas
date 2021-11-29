@@ -29,7 +29,7 @@ class Tumor:
         self.description =" "
         self.probability = 0
 
-    def addSlice(self, rect, mask, regionArea, frameArea, centerx: int, centery: int):
+    def addSlice(self, rect, mask, regionArea, frameArea, centerx: int, centery: int, imgnum):
         self.len += 1
         self.rectangles.append(rect)
         self.masks.append(mask)
@@ -37,6 +37,7 @@ class Tumor:
         self.frame_area.append(frameArea)
         self.centerx = centerx
         self.centery = centery
+        self.imgnum = imgnum
         print("Slice added!")
         return self.len
 
@@ -312,13 +313,13 @@ def findTumor(all_tumors, new_tumor: Tumor):
         return length
     else:
         for tumor in all_tumors:
-            if tumor.getStartIMG() != new_tumor.getStartIMG():
+            if tumor.getStartIMG()+1 == new_tumor.getStartIMG():
                 # print("imgnum1:{},  imgnum2:{}".format(tumor.getStartIMG(), new_tumor.getStartIMG()))
                 if tumor.isIdenticalTumor(new_tumor.centerx, new_tumor.centery, 5):
                     # tmptum = copy.deepcopy(Tumor(new_tumor))
                     # def addSlice(self, rect,mask, regionArea, frameArea, centerx, centery):
                     length = tumor.addSlice(new_tumor.getfirstRect(), new_tumor.getfirstMask(), new_tumor.getArea(0),
-                                            new_tumor.getRectArea(), new_tumor.centerx, new_tumor.centery)
+                                            new_tumor.getRectArea(), new_tumor.centerx, new_tumor.centery,new_tumor.getStartIMG() )
                     # if we found it, we can break the for loop
                     return length
         # the coordinates shows us no matches, so, it is a new tumor:
@@ -381,7 +382,7 @@ def plot_sus_proba(all_tumors):
     METHOD = "CIRLCE SHAPED MORE"
     for tumor in all_tumors:
         tumor.calculate_proba(METHOD)
-        if(tumor.get_proba()>0.91):
+        if(tumor.get_proba()>0.77):
             fig = plt.figure(figsize=(50, 10))
             title = "Suspicious form: ID:{}, lenght:{}".format(tumor.getId(), tumor.getLenght()) + "\n" + tumor.get_desc()
             if LOGGING_ENABLED:
