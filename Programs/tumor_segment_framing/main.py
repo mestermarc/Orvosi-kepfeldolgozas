@@ -20,7 +20,7 @@ featured_cmaps = ["bone", "hot", "twilight", "PuBuGn", "inferno", "seismic", "hs
 # 0 - prepare and load DICOM images
 # 1 - load small dataset for testing
 # 2 - load tumors- full dataset
-load_DICOM = 1
+load_DICOM = 2
 
 if load_DICOM == 0:
     CT_dicom = pre.load_CT(FOLDER_PATH)
@@ -119,13 +119,12 @@ print("Found {} forms:".format(len(tumors)))
 
 tumors = [tumor for tumor in tumors if tumor.getLenght() >= 3]
 # tumors = [tumor for tumor in tumors if tumor.get_proba()]
-print("Found {} REALLY suspicious forms:".format(len(tumors)))
+print("Found {} big enough suspicious forms:".format(len(tumors)))
 
+print("Found {} REALLY suspicious forms:".format(len(tumors)))
 tumor.plot_sus_proba(tumors)
-tumors = [tumor for tumor in tumors if tumor.get_proba() > 2.3]
+tumors = [tumor for tumor in tumors if tumor.get_proba() > 2.1]
+print("Found {} REALLY suspicious forms:".format(len(tumors)))
 
 for sustumor in tumors:
     temp = tumor.plot_data(sustumor)
-    tt = sustumor.get_AllMasks()
-
-print(temp)

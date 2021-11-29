@@ -289,8 +289,7 @@ def segment_frame_plot(tumors, image, base_image, MINSIZE, MAXSIZE, PADDING, PLO
                     x = minc + (maxc - minc) / 2
                     y = minr + (maxr - minr) / 2
 
-                    tmp_tumor = Tumor(framing, image, region.area,circle_area, x,
-                                      y)
+                    tmp_tumor = Tumor(framing, image, region.area,circle_area, x,y)
                     tmp_tumor.setStartimg(imageNUM)
                     length = findTumor(tumors, tmp_tumor)
                     circle2 = mpatches.Circle((minc + (maxc - minc) / 2, minr + (maxr - minr) / 2),

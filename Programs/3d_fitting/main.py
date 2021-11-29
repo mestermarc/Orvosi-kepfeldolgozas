@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 from ellipsoid_fit import ellipsoid_plot, data_regularize, ellipsoid_fit, ellipsoid_fit2
 
@@ -89,7 +90,7 @@ for slices in tumor:
     edges.append(int_array)
 
 pontfelho = []
-slicecounter = 0
+slicecounter = 1
 for edge in edges:
     print("Len:", len(edge))
     middlex = int(round(len(edge)/2,0))
@@ -101,8 +102,8 @@ for edge in edges:
         for column in range(0,len(edge[slicecounter])):
             #print(row, column, slicecounter)
             if edge[row][column]>0:
-                pontfelho.append((row-middlex,column-middley,slicecounter))
-    slicecounter+=3
+                pontfelho.append((row-middlex,column-middley,slicecounter*2.31))
+    slicecounter+=1
 print(len(pontfelho))
 print(pontfelho[12])
 
@@ -195,3 +196,12 @@ ellipsoid_plot([0, 0, 0], [r, r, r], evecs, ax=ax, plot_axes=True, cage_color='o
 # ax.plot([radii[0]],[0],[0],color='b',marker='o')
 
 plt.show()
+
+def plotCubeAt2(positions,sizes=None,colors=None, **kwargs):
+    if not isinstance(colors,(list,np.ndarray)): colors=["C0"]*len(positions)
+    if not isinstance(sizes,(list,np.ndarray)): sizes=[(1,1,1)]*len(positions)
+    g = []
+    for p,s,c in zip(positions,sizes,colors):
+        g.append( data )
+    return Poly3DCollection(np.concatenate(g),
+                            facecolors=np.repeat(colors,6), **kwargs)

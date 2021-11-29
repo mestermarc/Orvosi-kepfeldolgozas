@@ -164,87 +164,100 @@ class Tumor:
     def tumor_lookalike(self):
         # calculated for mininmum 3 long slices
         areas = self.getArea_array()
-        if areas[0] < average(areas) and areas[self.getLenght() - 1] < average(areas) and average(areas) < max(areas) and round(2 * getRadius(max(areas)), 2)/2 < self.getLenght()+1 and round(2 * getRadius(max(areas)), 2)/2 > self.getLenght()-2:
+        first_area = areas[0]
+        last_area = areas[self.getLenght() - 1]
+        avg_area = average(areas)
+
+        if areas[0] < average(areas) and areas[self.getLenght() - 1] < average(areas)  and areas_growing(areas) and areas_decreasing(areas):
             return True
         else:
             return False
 
-    def calculate_proba(self):
-        #1
-        if self.getLenght()>=3:
-            self.add_desc("#1 This form is long enough{}\n".format(self.getLenght()))
-            self.add_proba(0.1)
+    def calculate_proba(self, METHOD):
 
-            # 2
-            area_rate = self.calc_area_rate()
-            self.add_proba(area_rate)
-            self.add_desc("#2 Area / Circle drawn around {}%\n".format(area_rate))
+        if METHOD == "CIRLCE SHAPE":
+            self.add_proba(1)
+            return self.tumor_lookalike()
 
-            # 3
-            areas = self.getArea_array()
-            first_area = areas[0]
-            last_area = areas[self.getLenght()-1]
-            avg_area = average(areas)
+        if METHOD == "CIRLCE SHAPED MORE":
+            #1
+            if self.getLenght()>=3:
+                self.add_desc("#1 This form is long enough{}\n".format(self.getLenght()))
+                self.add_proba(0.1)
 
-            if first_area < avg_area and last_area < avg_area:
-                self.add_proba(0.3)
-                self.add_desc("#3 Avg is greater than first and last \n".format(area_rate))
-            elif first_area < avg_area or last_area < avg_area:
-                self.add_proba(0.15)
-                self.add_desc("#3 Avg is greater than first OR last \n".format(area_rate))
+                # 2
+                area_rate = self.calc_area_rate()
+                self.add_proba(area_rate*0.5)
+                self.add_desc("#2 Area / Circle drawn around {}%\n".format(area_rate))
+
+                # 3
+                areas = self.getArea_array()
+                first_area = areas[0]
+                last_area = areas[self.getLenght()-1]
+                avg_area = average(areas)
+
+                if first_area < avg_area and last_area < avg_area:
+                    self.add_proba(0.1)
+                    self.add_desc("#3 Avg is greater than first and last \n".format(area_rate))
+                elif first_area < avg_area or last_area < avg_area:
+                    self.add_proba(0.05)
+                    self.add_desc("#3 Avg is greater than first OR last \n".format(area_rate))
+                else:
+                    self.add_proba(-0.1)
+                    self.add_desc("#3 Avg is smaller than first and last \n".format(area_rate))
+
+                #4
+                mm2pix = 2.31
+                if round( getRadius(max(areas))) < (self.getLenght()*mm2pix)/2:
+                    self.add_proba(0.1)
+                    self.add_desc("Shape's radius({}) < {} \n".format(getRadius(max(areas)),(self.getLenght()*mm2pix)/2))
+                else:
+                    self.add_proba(-0.1)
+
+                #5
+                if round(getRadius(max(areas))) > (self.getLenght()*mm2pix)/2-mm2pix:
+                    self.add_proba(0.1)
+                    self.add_desc("Shape's radius({}) > {} \n".format(getRadius(max(areas)),(self.getLenght()*mm2pix)/4))
+                else:
+                    self.add_proba(-0.1)
+
+                #6
+                if(areas_growing(areas)):
+                    self.add_desc("#6 Areas growing to middle\n")
+                    self.add_proba(0.1)
+                else:
+                    self.add_proba(-0.1)
+
+                #6
+                if (areas_decreasing(areas)):
+                    self.add_desc("#6 Areas decreasing from middle\n")
+                    self.add_proba(0.1)
+                else:
+                    self.add_proba(-0.05)
+                #7
+                if (largest_in_middle(areas)):
+                    self.add_desc("#7 Largest area is in the middle!\n")
+                    self.add_proba(0.05)
+                else:
+                    self.add_proba(-0.05)
+
+                #8
+                if (middle_ok(areas)):
+                    self.add_desc("#8 Middle areas are close enough!\n")
+                    self.add_proba(0.05)
+
             else:
-                self.add_proba(-0.4)
-                self.add_desc("#3 Avg is smaller than first and last \n".format(area_rate))
+                self.add_desc("This form isnt long enough{}\n".format(self.getLenght()))
 
-            #4
-            diameter = 2 * getRadius(max(areas))
-            if round( diameter/ 2, 2) < self.getLenght() + 1:
-                self.add_proba(0.4)
-                self.add_desc("Shape's diameter/2({}) < {} \n".format(diameter/2,self.getLenght() + 1))
+            self.add_desc("This form's probability is:{}".format(self.get_proba()))
+
+            if(self.get_proba()>0.6):
+                return True
             else:
-                self.add_proba(-0.2)
-
-            #5
-            if round(diameter/ 2 ,2) > (self.getLenght()+1)/2:
-                self.add_proba(0.4)
-                self.add_desc("Shape's diameter/2({}) > {} \n".format(diameter/2,(self.getLenght()+1)/2))
-            else:
-                self.add_proba(-0.2)
-
-            #6
-            if(areas_growing(areas)):
-                self.add_desc("#6 Areas growing to middle\n")
-                self.add_proba(0.2)
-            else:
-                self.add_proba(-0.2)
-
-            #6
-            if (areas_decreasing(areas)):
-                self.add_desc("#6 Areas decreasing from middle\n")
-                self.add_proba(0.2)
-            else:
-                self.add_proba(-0.2)
-            #7
-            if (largest_in_middle(areas)):
-                self.add_desc("#7 Largest area is in the middle!\n")
-                self.add_proba(0.2)
-            else:
-                self.add_proba(-0.2)
-
-            #8
-            if (middle_ok(areas)):
-                self.add_desc("#8 Middle areas are close enough!\n")
-                self.add_proba(0.2)
-
-        else:
-            self.add_desc("This form isnt long enough{}\n".format(self.getLenght()))
-
-        self.add_desc("This form's probability is:{}".format(self.get_proba()))
-
-        if(self.get_proba()>2):
+                return False
+        if METHOD == "ELLIPSOID FIT":
             return True
-        else:
-            return False
+
 
 
     def calc_area_rate(self):
@@ -277,7 +290,6 @@ def areas_growing(areas):
 def areas_decreasing(areas):
     togo = int(len(areas) / 2)       # middle element (greater)
     for utolsok in range(togo+1, len(areas)):
-        print(areas[utolsok],"<=",areas[togo])
         if(areas[togo]<= areas[utolsok]):
             return False
     return True
@@ -359,21 +371,24 @@ def plot_sus(all_tumors):
             ax.add_patch(rt)
         plt.show()
 
+def calc_prob(all_tumors):
+    METHOD = "CIRLCE SHAPED MORE"
+    for tumor in all_tumors:
+        res = tumor.calculate_proba(METHOD)
+
 def plot_sus_proba(all_tumors):
     LOGGING_ENABLED = True
+    METHOD = "CIRLCE SHAPED MORE"
     for tumor in all_tumors:
-
-        #res = tumor.calc_lenght()
-        res = tumor.calculate_proba()
-
-        if(res):
+        tumor.calculate_proba(METHOD)
+        if(tumor.get_proba()>0.91):
             fig = plt.figure(figsize=(50, 10))
             title = "Suspicious form: ID:{}, lenght:{}".format(tumor.getId(), tumor.getLenght()) + "\n" + tumor.get_desc()
             if LOGGING_ENABLED:
                 print(title)
             fig.suptitle(title, fontsize=16)
             for num in range(0, tumor.getLenght()):
-                ax = fig.add_subplot(1, 5, num + 1)
+                ax = fig.add_subplot(1, 8, num + 1)
                 plt.imshow(tumor.getMask(num), cmap='coolwarm')
                 ax.title.set_text("#{}, area = {}".format(num, tumor.getArea(num)))
                 ax.set_axis_off()
@@ -381,6 +396,7 @@ def plot_sus_proba(all_tumors):
                 rt = tumor.getRect(num)
                 ax.add_patch(rt)
             plt.show()
+            #plot_data(tumor)
 
 
 def getRadius(area):
@@ -400,7 +416,6 @@ def plot_data(tumor):
         ax.title.set_text("#{}".format(num))
         ax.set_axis_off()
         stg.append(np.array([tumor.getMask(num)[y:y + width, x:x + width]]))
-        print(np.array([tumor.getMask(num)[y:y + width, x:x + width]]))
     plt.show()
     return stg
 
