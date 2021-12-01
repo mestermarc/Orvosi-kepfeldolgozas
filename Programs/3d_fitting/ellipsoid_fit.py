@@ -123,6 +123,8 @@ def ellipsoid_fit(X):
                   1 - 0 * x])
     d2 = np.array(x * x + y * y + z * z).T  # rhs for LLSQ
     u = np.linalg.solve(D.dot(D.T), D.dot(d2))
+    chi2 = (1 - (D.T.dot(u)) / d2)**2
+
     a = np.array([u[0] + 1 * u[1] - 1])
     b = np.array([u[0] - 2 * u[1] - 1])
     c = np.array([u[1] - 2 * u[0] - 1])
@@ -145,6 +147,12 @@ def ellipsoid_fit(X):
     radii = np.sqrt(1. / np.abs(evals))
     radii *= np.sign(evals)
 
+    print("centre:", center)
+    print("chi len:", len(chi2))
+    print("chi2 avg:", np.average(chi2))
+    print("chi2 median:", np.median(chi2))
+    print("chi2 sum:", np.sum(chi2))
+    print("sugarak:",radii )
     return center, evecs, radii, v
 
 
@@ -181,7 +189,7 @@ def ellipsoid_fit2(point_data, mode=''):
 
     # SOLUTION TO NORMAL SYSTEM OF EQUATIONS
     u = np.linalg.solve(D.T.dot(D), D.T.dot(d2))
-    # chi2 = (1 - (D.dot(u)) / d2) ^ 2
+    chi2 = (1 - (D.dot(u)) / d2) ^ 2
 
     # CONVERT BACK TO ALGEBRAIC FORM
     if mode == '':  # 9-DOF-MODE
@@ -231,4 +239,6 @@ def ellipsoid_fit2(point_data, mode=''):
     sgns = np.sign(evals)
     radii *= sgns
 
-    return (centre, evecs, radii)
+    print("centre:",centre[2])
+    print("chi2:",chi2)
+    return (centre, evecs, radii, chi2)
