@@ -13,6 +13,8 @@ import tumor
 # FOLDER_PATH = "E:/Egyetem/AI/_Orvosi képfeldolgozás/Datasets/pos_lung_CT_10/tudodaganat/"
 
 # bercimellkas:
+from ellipsoid_fit import ellipsoid_acc
+
 FOLDER_PATH = "E:/Egyetem/AI/_Orvosi képfeldolgozás/Datasets/Berci_mellkas/"
 featured_cmaps = ["bone", "hot", "twilight", "PuBuGn", "inferno", "seismic", "hsv", "twilight_shifted", "spring",
                   "Accent", "bwr", "afmhot"]
@@ -123,8 +125,14 @@ print("Found {} big enough suspicious forms:".format(len(tumors)))
 
 print("Found {} REALLY suspicious forms:".format(len(tumors)))
 tumor.plot_sus_proba(tumors)
-tumors = [tumor for tumor in tumors if tumor.get_proba() > 2.1]
+tumors = [tumor for tumor in tumors if tumor.get_proba() > 0.9]
 print("Found {} REALLY suspicious forms:".format(len(tumors)))
-
+t = []
 for sustumor in tumors:
     temp = tumor.plot_data(sustumor)
+    print(temp[0][0])
+    t.append(temp[0][0])
+    t.append(temp[1][0])
+    t.append(temp[2][0])
+    t.append(temp[3][0])
+    ellipsoid_acc(t)

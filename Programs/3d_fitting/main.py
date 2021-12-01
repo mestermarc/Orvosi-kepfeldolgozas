@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 import sliceDataset as sD
-from ellipsoid_fit import ellipsoid_plot, data_regularize, ellipsoid_fit, ellipsoid_fit2
+from ellipsoid_fit import ellipsoid_plot, data_regularize, ellipsoid_fit
 
 one = sD.get_one()
 two = sD.get_two()
@@ -18,7 +18,7 @@ tumor.append(one)
 tumor.append(two)
 tumor.append(three)
 tumor.append(four)
-
+print(tumor[0].shape())
 edges = []
 
 for slices in tumor:
@@ -72,7 +72,6 @@ import plotly.graph_objects as go
 #fig.update_layout(scene=dict(aspectratio=dict(x=2, y=2, z=0.5),xaxis = dict(range=[-3,3],),yaxis = dict(range=[-3,3])))
 
 #3d fit
-
 data = np.array(pontfelho)
 
 data2 = data_regularize(data, divs=8)
@@ -103,26 +102,13 @@ ax.scatter(data_centered[:, 0], data_centered[:, 1], data_centered[:, 2], marker
 # ax.scatter(data_centered_regularized[:, 0], data_centered_regularized[:, 1],
 #            data_centered_regularized[:, 2], marker='o', color='b')
 ellipsoid_plot([0, 0, 0], radii, evecs, ax=ax, plot_axes=True, cage_color='g')
+#ellipsoid_plot([0, 0, 0], [r, r, r], evecs, ax=ax, plot_axes=True, cage_color='orange')
 
 plt.show()
 
+sD.showellips()
+##############################################################################
 
-fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
-ax.scatter(data_on_sphere[:, 0], data_on_sphere[:, 1], data_on_sphere[:, 2], marker='o', color='r')
-ellipsoid_plot([0, 0, 0], [r, r, r], evecs, ax=ax, plot_axes=True, cage_color='orange')
 
-# ax.plot([r],[0],[0],color='r',marker='o')
-# ax.plot([radii[0]],[0],[0],color='b',marker='o')
 
-plt.show()
-
-def plotCubeAt2(positions,sizes=None,colors=None, **kwargs):
-    if not isinstance(colors,(list,np.ndarray)): colors=["C0"]*len(positions)
-    if not isinstance(sizes,(list,np.ndarray)): sizes=[(1,1,1)]*len(positions)
-    g = []
-    for p,s,c in zip(positions,sizes,colors):
-        g.append( data )
-    return Poly3DCollection(np.concatenate(g),
-                            facecolors=np.repeat(colors,6), **kwargs)
 
