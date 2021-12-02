@@ -8,6 +8,8 @@ import numpy as np
 
 from numpy import average
 
+from ellipsoid_fit import ellipsoid_acc, ellipsoid_plotting
+
 
 class Tumor:
     def __init__(self, rectangle, mask, regionArea, frameArea, centerx, centery):
@@ -416,31 +418,25 @@ def plot_data(tumor):
         ax.imshow(tumor.getMask(num)[y:y + width, x:x + width], cmap="bone", interpolation="nearest")  # crop_img = img[y:y+h, x:x+w
         ax.title.set_text("#{}".format(num))
         ax.set_axis_off()
-        stg.append(np.array([tumor.getMask(num)[y:y + width, x:x + width]]))
+        stg.append([tumor.getMask(num)[y:y + width, x:x + width]])
     plt.show()
     return stg
 
-def layers_3D(slice):
-    from mpl_toolkits.mplot3d import Axes3D
-    import numpy as np
-    import matplotlib.pyplot as plt
+def get_regions(tumor):
+    all_masks = []
+    all_imgs = []
+    for num in range(0, tumor.getLenght()):
+        coords = tumor.rectangles[num].get_xy()
+        width = tumor.rectangles[num].get_width()
+        x = coords[0]
+        y = coords[1]
+        all_masks.append(np.array([tumor.getMask(num)[y:y + width, x:x + width]]))
+    return all_masks
 
-    fig = plt.figure()
-    ax = fig.gca(projection='3d')
-
-    x = np.linspace(0, 1, 100)
-    X, Y = np.meshgrid(x, x)
-    Z = np.sin(X) * np.sin(Y)
-
-    levels = np.linspace(-1, 1, 40)
-
-    ax.contourf(X, Y, .1 * np.sin(3 * X) * np.sin(5 * Y), zdir='z', levels=.1 * levels)
-    ax.contourf(X, Y, 3 , zdir='z', levels=3 + .1 * levels)
-    ax.contourf(X, Y, 7 + .1 * np.sin(7 * X) * np.sin(3 * Y), zdir='z', levels=7 + .1 * levels)
-
-    ax.legend()
-    ax.set_xlim3d(0, 1)
-    ax.set_ylim3d(0, 1)
-    ax.set_zlim3d(0, 10)
-
-    plt.show()
+def ellipsoid_fitting(all_tumors):
+    for tumor in all_tumors:
+        tmp_regions = get_regions(tumor)
+        slices = []
+        for i in range(0,len(tmp_regions)):
+            slices.append(tmp_regions[i][0])
+        ellipsoid_plotting(slices, tmp_regions)
