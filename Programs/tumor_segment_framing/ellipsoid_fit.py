@@ -153,8 +153,11 @@ def ellipsoid_fit(X):
     radii = np.sqrt(1. / np.abs(evals))
     radii *= np.sign(evals)
     print("chi2 avg:", np.average(chi2))
-    get_fitting_accuracy(radii[0], radii[1], radii[2], chi2)
-    return center, evecs, radii, v
+    acc = get_fitting_accuracy(radii[0], radii[1], radii[2], chi2)
+
+    ecc = calc_eccentricity(radii[0], radii[1], radii[2])
+
+    return center, evecs, radii, v, acc, ecc
 
 
 import numpy as np
@@ -168,6 +171,28 @@ def get_fitting_accuracy(x_axis, y_axis, z_axis, llsq):
     accuracy = round(rate/4090, 2)*100
     print("accuracy:{}%".format(accuracy))
     return accuracy
+
+def findEccentricity(A, B):
+    if(A==B):
+        return 0
+    semiMajor = A * A
+    semiMinor = B * B
+
+    ans = math.sqrt(1 - semiMinor / semiMajor)
+
+    return ans
+
+def calc_eccentricity(x_axis, y_axis, z_axis):
+    semi_major_axis = max(x_axis, y_axis, z_axis)
+    eccentricities = []
+    eccentricities.append(findEccentricity(semi_major_axis,x_axis))
+    eccentricities.append(findEccentricity(semi_major_axis,y_axis))
+    eccentricities.append(findEccentricity(semi_major_axis,z_axis))
+
+    eccentricities2 = [ecc for ecc in eccentricities if ecc >0]
+    print("ecc length: ", len(eccentricities2))
+    return eccentricities2
+
 
 
 def ellipsoid_acc(tumor):
@@ -255,10 +280,16 @@ def ellipsoid_acc(tumor):
     plt.show()
 
 
-def ellipsoid_plotting(tumor, regions):
+
+
+from skimage import morphology
+
+def ellipsoid_plotting(tumorsl, tumor):
     edges = []
 
-    for slices in tumor:
+    for slices in tumorsl:
+        slices = morphology.remove_small_objects(slices.astype(bool), min_size=3)
+
         edge = filters.roberts(slices)
         edge[edge > 0] = 1
         int_array = edge.astype(int)
@@ -292,21 +323,23 @@ def ellipsoid_plotting(tumor, regions):
 
     fig = plt.figure(figsize=(10, 10), dpi=80)
     gs = GridSpec(2, 4)  # 2 rows, 4 columns
+
+
     ax1 = fig.add_subplot(gs[0, 0])  # First row, first column
-    ax1.imshow(tumor[0], cmap="bone",interpolation="nearest")  # crop_img = img[y:y+h, x:x+w
+    ax1.imshow(tumorsl[0], cmap="bone",interpolation="nearest")  # crop_img = img[y:y+h, x:x+w
     #ax1.title.set_text("#{}".format(num))
     ax1.set_axis_off()
 
     ax2 = fig.add_subplot(gs[0, 1])  # First row, second column
-    ax2.imshow(tumor[1], cmap="bone", interpolation="nearest")  # crop_img = img[y:y+h, x:x+w
+    ax2.imshow(tumorsl[1], cmap="bone", interpolation="nearest")  # crop_img = img[y:y+h, x:x+w
     # ax1.title.set_text("#{}".format(num))
     ax2.set_axis_off()
     ax3 = fig.add_subplot(gs[0, 2])  # First row, third column
-    ax3.imshow(tumor[2], cmap="bone", interpolation="nearest")  # crop_img = img[y:y+h, x:x+w
+    ax3.imshow(tumorsl[2], cmap="bone", interpolation="nearest")  # crop_img = img[y:y+h, x:x+w
     # ax1.title.set_text("#{}".format(num))
     ax3.set_axis_off()
     ax4 = fig.add_subplot(gs[0, 3])  # First row, third column
-    ax4.imshow(tumor[3], cmap="bone", interpolation="nearest")  # crop_img = img[y:y+h, x:x+w
+    ax4.imshow(tumorsl[3], cmap="bone", interpolation="nearest")  # crop_img = img[y:y+h, x:x+w
     # ax1.title.set_text("#{}".format(num))
     ax4.set_axis_off()
 
@@ -329,7 +362,7 @@ def ellipsoid_plotting(tumor, regions):
 
     data2 = data_regularize(data, divs=8)
 
-    center, evecs, radii, v = ellipsoid_fit(data2)
+    center, evecs, radii, v, acc, ecc = ellipsoid_fit(data2)
 
     data_centered = data - center.T
     data_centered_regularized = data2 - center.T
@@ -355,5 +388,11 @@ def ellipsoid_plotting(tumor, regions):
     #            data_centered_regularized[:, 2], marker='o', color='b')
     ellipsoid_plot([0, 0, 0], radii, evecs, ax=ax2, plot_axes=True, cage_color='g')
     # ellipsoid_plot([0, 0, 0], [r, r, r], evecs, ax=ax, plot_axes=True, cage_color='orange')
+
+
+
+    title = "Suspicious form: ID:{}, lenght:{}, accuracy={}, ellips valid:{}%\neccentricities are: {}, {}"\
+                .format(tumor.getId(), tumor.getLenght(), tumor.get_proba(), acc, ecc[0],ecc[1]) + "\n"
+    fig.suptitle(title, fontsize=16)
 
     plt.show()

@@ -384,7 +384,7 @@ def plot_sus_proba(all_tumors):
     METHOD = "CIRLCE SHAPED MORE"
     for tumor in all_tumors:
         tumor.calculate_proba(METHOD)
-        if(tumor.get_proba()>0.77):
+        if(tumor.get_proba()>0.6):
             fig = plt.figure(figsize=(50, 10))
             title = "Suspicious form: ID:{}, lenght:{}".format(tumor.getId(), tumor.getLenght()) + "\n" + tumor.get_desc()
             if LOGGING_ENABLED:
@@ -433,10 +433,21 @@ def get_regions(tumor):
         all_masks.append(np.array([tumor.getMask(num)[y:y + width, x:x + width]]))
     return all_masks
 
+def get_region_images(tumor, CT_kepek):
+    all_masks = []
+    all_imgs = []
+    for num in range(0, tumor.getLenght()):
+        coords = tumor.rectangles[num].get_xy()
+        width = tumor.rectangles[num].get_width()
+        x = coords[0]
+        y = coords[1]
+        all_imgs((CT_kepek[num][y:y + width, x:x + width]))
+    return all_imgs
+
 def ellipsoid_fitting(all_tumors):
     for tumor in all_tumors:
         tmp_regions = get_regions(tumor)
         slices = []
         for i in range(0,len(tmp_regions)):
             slices.append(tmp_regions[i][0])
-        ellipsoid_plotting(slices, tmp_regions)
+        ellipsoid_plotting(slices, tumor)

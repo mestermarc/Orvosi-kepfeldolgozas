@@ -124,8 +124,11 @@ tumors = [tumor for tumor in tumors if tumor.getLenght() >= 3]
 print("Found {} big enough suspicious forms:".format(len(tumors)))
 
 print("Found {} REALLY suspicious forms:".format(len(tumors)))
-tumor.plot_sus_proba(tumors)
-tumors = [tumor for tumor in tumors if tumor.get_proba() > 0.9]
-print("Found {} REALLY suspicious forms:".format(len(tumors)))
+METHOD = "CIRLCE SHAPED MORE"
+for tm in tumors:
+    tm.calculate_proba(METHOD)
 
+
+tumors = [tumor for tumor in tumors if tumor.get_proba() > 0.8]
+print("Found {} REALLY suspicious forms:".format(len(tumors)))
 tumor.ellipsoid_fitting(tumors)
