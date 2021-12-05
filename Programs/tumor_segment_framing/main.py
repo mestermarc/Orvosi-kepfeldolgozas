@@ -9,6 +9,8 @@ from datetime import datetime
 import numpy as np
 import preprocessing as pre
 import tumor
+from GUI import GUI_Panel
+
 
 # small dataset:
 # FOLDER_PATH = "E:/Egyetem/AI/_Orvosi képfeldolgozás/Datasets/pos_lung_CT_10/tudodaganat/"
@@ -25,7 +27,8 @@ featured_cmaps = ["bone", "hot", "twilight", "PuBuGn", "inferno", "seismic", "hs
 # 0 - prepare and load DICOM images
 # 1 - load small dataset for testing
 # 2 - load tumors- full dataset
-load_DICOM = 2
+# 3 - GUI usage
+load_DICOM = 1
 
 if load_DICOM == 0:
     CT_dicom = pre.load_CT(FOLDER_PATH)
@@ -57,12 +60,21 @@ elif load_DICOM == 1:
     cropped_CT = np.load('cropped_CT_small.npy')
     print("Opened presaved ndarray (cropped_CT_small)")
 
-else:
+elif load_DICOM == 2:
     internal_dataset = np.load('bercidataset.npy')
     print("Opened presaved ndarray (bercidataset)")
 
     cropped_CT = np.load('cropped_CT.npy')
     #print("Opened presaved ndarray (cropped_CT)")
+else:
+    CT_kepsorozat = pre.get_pixels_hu(pre.load_CT(FOLDER_PATH))
+    print("CT_kepsorozat betöltve.\n")
+    print("Preprocessing...\n")
+    my_gui = GUI_Panel(CT_kepsorozat)
+
+    print("Preprocessing befejezve, GUI indul.\n")
+    my_gui.log("Lung segmentation")
+    my_gui.root.mainloop()
 
 print("dataset size is: {}".format(len(internal_dataset)))
 dateTimeObj = datetime.now()

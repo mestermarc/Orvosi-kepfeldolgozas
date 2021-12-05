@@ -62,6 +62,20 @@ def largest_label_volume(im, bg=-1):
         return None
 
 
+def get_colored_img(image):
+    thresh = threshold_otsu(image)
+    bw = closing(image > thresh, square(3))
+
+    # remove artifacts connected to image border
+    cleared = clear_border(bw)
+
+    # label image regions
+    label_image = label(cleared)
+    # to make the background transparent, pass the value of `bg_label`,
+    # and leave `bg_color` as `None` and `kind` as `overlay`
+    image_label_overlay = label2rgb(label_image, image=image, bg_label=0)
+    return image_label_overlay
+
 def segment_lung_mask(image, fill_lung_structures=True):
     # not actually binary, but 1 and 2.
     # 0 is treated as background, which we do not want
