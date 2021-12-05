@@ -40,7 +40,7 @@ class Tumor:
         self.centerx = centerx
         self.centery = centery
         self.imgnum = imgnum
-        print("Slice added!")
+        #print("Slice added!")
         return self.len
 
     # TODO delete disappeared slices
@@ -161,7 +161,7 @@ class Tumor:
             result = "Suspicious!"
         else:
             result = "Not suspicious!"
-        print(str + result)
+        #print(str + result)
         return str + "\n" + result
 
     def tumor_lookalike(self):
@@ -211,7 +211,7 @@ class Tumor:
 
                 #4
                 mm2pix = 2.31
-                if round( getRadius(max(areas))) < (self.getLenght()*mm2pix)/2:
+                if round( getRadius(max(areas))) < (self.getLenght()*mm2pix)/2+mm2pix:
                     self.add_proba(0.1)
                     self.add_desc("Shape's radius({}) < {} \n".format(getRadius(max(areas)),(self.getLenght()*mm2pix)/2))
                 else:
@@ -327,7 +327,7 @@ def findTumor(all_tumors, new_tumor: Tumor):
         # the coordinates shows us no matches, so, it is a new tumor:
         new_tumor.setId(len(all_tumors) + 1)
         all_tumors.append(new_tumor)
-        print("No match, added a new tumor! id:{}, imgnum:{}".format(new_tumor.getId(), new_tumor.getStartIMG()))
+        #print("No match, added a new tumor! id:{}, imgnum:{}".format(new_tumor.getId(), new_tumor.getStartIMG()))
         return length
 
 
@@ -354,7 +354,7 @@ def plot_all_sus(all_tumors, all):
 
 
 def plot_sus(all_tumors):
-    LOGGING_ENABLED = True
+    LOGGING_ENABLED = False
     for tumor in all_tumors:
 
         res = tumor.calc_lenght()
@@ -380,18 +380,18 @@ def calc_prob(all_tumors):
         res = tumor.calculate_proba(METHOD)
 
 def plot_sus_proba(all_tumors):
-    LOGGING_ENABLED = True
+    LOGGING_ENABLED = False
     METHOD = "CIRLCE SHAPED MORE"
     for tumor in all_tumors:
         tumor.calculate_proba(METHOD)
-        if(tumor.get_proba()>0.6):
+        if(tumor.get_proba()>0.6 and tumor.getLenght()==3):
             fig = plt.figure(figsize=(50, 10))
             title = "Suspicious form: ID:{}, lenght:{}".format(tumor.getId(), tumor.getLenght()) + "\n" + tumor.get_desc()
             if LOGGING_ENABLED:
                 print(title)
             fig.suptitle(title, fontsize=16)
             for num in range(0, tumor.getLenght()):
-                ax = fig.add_subplot(1, 8, num + 1)
+                ax = fig.add_subplot(1, 3, num + 1)
                 plt.imshow(tumor.getMask(num), cmap='coolwarm')
                 ax.title.set_text("#{}, area = {}".format(num, tumor.getArea(num)))
                 ax.set_axis_off()

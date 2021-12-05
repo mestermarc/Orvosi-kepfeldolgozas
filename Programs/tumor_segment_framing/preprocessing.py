@@ -136,7 +136,6 @@ def get_cropping_size(image, PADDING):
 
     # remove artifacts connected to image border
     cleared = clear_border(bw)
-    print("called")
     # label image regions
     label_image = label(cleared)
     # to make the background transparent, pass the value of `bg_label`,
@@ -316,11 +315,7 @@ def segment_frame_plot(tumors, image, base_image, MINSIZE, MAXSIZE, PADDING, PLO
                             (minc + radius * 0.9, minr + radius * 0.5),
                             color='cyan', weight='bold',
                             fontsize=5, ha='left', va='center')
-                        print("#{} Fill rate={}%, area= {}, ({},{}), radius is:{}".format(cntr,
-                                                                                          round(
-                                                                                              region.area / circle_area * 100,
-                                                                                              2),
-                                                                                          region.area, x, y, radius))
+                        #print("#{} Fill rate={}%, area= {}, ({},{}), radius is:{}".format(cntr,round(region.area / circle_area * 100,2),region.area, x, y, radius))
 
         if (PLOTTING_ENABLED):
             ax[0].set_axis_off()
@@ -377,9 +372,7 @@ def plotly_3d(image):
 
     z_data = pd.read_csv('https://raw.githubusercontent.com/plotly/datasets/master/api_docs/mt_bruno_elevation.csv')
     fig = go.Figure(data=[go.Surface(z=z_data.values)])
-    print(z_data.values[2])
-    print()
-    print(z_data.values)
+
     # fig = go.Figure(data=[go.Mesh3d(z=p, color='rgb(255,0,0)')])
 
     fig.update_layout(title='Mt Bruno Elevation', autosize=False,

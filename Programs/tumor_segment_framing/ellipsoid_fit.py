@@ -156,6 +156,7 @@ def ellipsoid_fit(X):
     acc = get_fitting_accuracy(radii[0], radii[1], radii[2], chi2)
 
     ecc = calc_eccentricity(radii[0], radii[1], radii[2])
+    #ecc = [10,10]
 
     return center, evecs, radii, v, acc, ecc
 
@@ -288,7 +289,7 @@ def ellipsoid_plotting(tumorsl, tumor):
     edges = []
 
     for slices in tumorsl:
-        slices = morphology.remove_small_objects(slices.astype(bool), min_size=3)
+        slices = morphology.remove_small_objects(slices.astype(bool), min_size=7)
 
         edge = filters.roberts(slices)
         edge[edge > 0] = 1
@@ -339,7 +340,8 @@ def ellipsoid_plotting(tumorsl, tumor):
     # ax1.title.set_text("#{}".format(num))
     ax3.set_axis_off()
     ax4 = fig.add_subplot(gs[0, 3])  # First row, third column
-    ax4.imshow(tumorsl[3], cmap="bone", interpolation="nearest")  # crop_img = img[y:y+h, x:x+w
+    if(len(tumorsl)>=4):
+        ax4.imshow(tumorsl[3], cmap="bone", interpolation="nearest")  # crop_img = img[y:y+h, x:x+w
     # ax1.title.set_text("#{}".format(num))
     ax4.set_axis_off()
 
