@@ -1,1 +1,2 @@
 Szakdolgozatom forráskódja
+szakdolgozatig, rendzserezetlenül, GUI nélkül
